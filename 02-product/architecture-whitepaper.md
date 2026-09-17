@@ -1,17 +1,16 @@
-# FinMesh 🚀
+# FinMesh 架构与产品白皮书
 
-> **AI-Powered FP&A + Finance BP SaaS Platform & Financial MCP Brain**  
-> 新一代通用型、AI 驱动的业财融合与沙盘推演中枢，兼具现代化业财工作台与开放金融智能能力。
+> 面向 FP&A 与财务 BP 的业财协同与沙盘推演系统，提供分析工作台与 MCP 接口。
 
 ---
 
 ## 目录
 
-- [1. 产品愿景与核心定位](#1-产品愿景与核心定位)
+- [1. 产品定位与解决问题](#1-产品定位与解决问题)
 - [2. 目标客群与痛点解法 (ICP)](#2-目标客群与痛点解法-icp)
-- [3. 三位一体产品交互范式](#3-三位一体产品交互范式)
+- [3. 核心交互模式](#3-核心交互模式)
 - [4. 系统整体架构与技术选型](#4-系统整体架构与技术选型)
-- [5. 零幻觉财务审计与数字穿透机制](#5-零幻觉财务审计与数字穿透机制)
+- [5. 数值确定性与审计穿透](#5-数值确定性与审计穿透)
 - [6. 业财数据模型与声明式指标层](#6-业财数据模型与声明式指标层)
 - [7. Financial MCP Server 规范](#7-financial-mcp-server-规范)
 - [8. 技术栈清单](#8-技术栈清单)
@@ -19,57 +18,59 @@
 
 ---
 
-## 1. 产品愿景与核心定位
+## 1. 产品定位与解决问题
 
-传统 FP&A（财务规划与分析）和 Finance BP（财务业务伙伴）普遍受困于三个核心难题：
-1. **数据孤岛与口径割裂**：总账科目（GL）、业务系统流水（Stripe/Shopify/CRM）与人事编制表格口径不一，每月月结财务分析师需要耗费 70% 的时间在人工清洗和对齐表格上。
-2. **建模僵化与推演滞后**：传统 Excel 极度脆弱易坏，复杂的多维商业模拟无法快速响应高层与业务部门的实时“What-If”沙盘诉求。
-3. **AI 在财务领域的不可信幻觉**：直接让大模型做财务计算会导致可怕的计算幻觉（算错利润、凭空捏造百分比），且没有任何数据溯源能力，无法通过 CFO 与外部审计审查。
+企业财务规划与分析（FP&A）及业务财务伙伴（Finance BP）日常面临三项主要限制：
+1. **数据口径割裂**：总账科目（GL）、业务系统订单（Stripe/Shopify/CRM）与人事编制表格口径不一，月结时分析师需要耗费大量时间手工清洗与核对跨系统表格。
+2. **模型维护困难**：传统电子表格公式容易破损，复杂的跨期测算难以响应管理层实时的“What-If”沙盘推演需求。
+3. **大模型计算幻觉**：大模型直接做数值计算容易出现心算偏差，且缺少数据溯源链路，无法满足审计与管理层核验要求。
 
-**FinMesh 的使命**：
-打造一套**以确定性计算为底座、以因果画布为表达、以自主 AI Agent 为杠杆**的业财操作系统。它不仅是供财务团队高效分析与敏捷推演的 SaaS 工作台，更是面向未来全自动 AI Agent 生态的开放**金融数据智能中枢 (Financial MCP Server)**。
+**FinMesh 的定位**：
+FinMesh 是一套面向财务分析与业务协同的软件系统。系统基于确定性 SQL 计算，提供图形化因果沙盘与结构化归因分析，同时通过标准 MCP 协议向外部智能体暴露财务指标查询与推演能力。
 
 ---
 
 ## 2. 目标客群与痛点解法 (ICP)
 
-FinMesh 采用兼顾高成长 SMB 与成长期中型企业（Scale-up / Mid-Market）的双轨切入策略：
+FinMesh 兼顾成长期企业（Scale-up / Mid-Market）与中小企业（SMB）：
 
 | 维度 | Scale-up / Mid-Market (100 - 1000 人) | 高成长 SMB / 出海企业 (< 100 人) |
 | :--- | :--- | :--- |
-| **典型特征** | 业务快速迭代、有专职 Finance BP，多部门协同 | 追求轻量精简、即插即用、重视现金流与跑道 |
-| **核心痛点** | 跨部门数据拉扯、Variance（预实偏差）分析耗时长、预算审批复杂 | 缺少专职财务分析师、Excel 模板混乱、无法实时掌握公司财务健康度 |
-| **FinMesh 解法** | 自动化方差归因瀑布图（Waterfall）、多维权限隔离、标准 API + 数仓直连 | 智能拖拽文件入库、开箱即用标准 SaaS/电商指标看板、实时现金跑道监控 |
+| **典型特征** | 业务迭代快、设专职 Finance BP，需要跨部门协同 | 追求轻量精简、即插即用、重视现金流与跑道控制 |
+| **核心痛点** | 跨部门数据口径不一、预实偏差（Variance）分析耗时长、预算审批流程复杂 | 缺少专职财务分析师、表格模板混乱、难以实时掌握现金流健康度 |
+| **FinMesh 解法** | 自动生成方差归因瀑布图（Waterfall）、多维权限隔离、标准 API 与数仓连接 | 拖拽文件批量入库、内置标准 SaaS/电商指标模板、实时现金跑道监控 |
 
 ---
 
-## 3. 三位一体产品交互范式
+## 3. 核心交互模式
 
-FinMesh 彻底打破传统冰冷死板的表格工具体验，融合了三大互通的工作流模块：
+系统提供三项联动的工作流模块：
 
 ```mermaid
 graph LR
-    A[📊 多维业财分析网格<br/>P&L Multi-dim Grid] <--> B[🎨 敏捷因果沙盘画布<br/>React Flow What-If Canvas]
-    B <--> C[🤖 自主 Finance BP 备忘录<br/>AI Memo & Waterfall]
+    A[多维业财分析网格<br/>P&L Multi-dim Grid] <--> B[因果沙盘画布<br/>React Flow What-If Canvas]
+    B <--> C[经营分析备忘录<br/>AI Memo & Waterfall]
     C <--> A
 ```
 
-1. **🎨 敏捷因果沙盘画布 (Visual What-If Driver Canvas)**：
-   - 基于 **React Flow** 构建直观的业财因果有向无环图（DAG）。
-   - **历史期**节点自动绑定底层真实事实表（Actuals）；**未来预测期**节点转化为带动态滑块的驱动因子。
-   - 拖拽滑块（如：“调整获客成本 +15%”、“推迟 2 个月招聘计划”），系统毫秒级重算 P&L 和 Cash Runway，并提供 Base / Bull / Bear 多情景同屏对比。
-2. **📊 多维业财分析网格 (Dynamic Financial Grid)**：
-   - 兼顾类似 Pigment / Excel 的多维报表操控习惯（基于 AG Grid）。
-   - 支持自由切片（Slice & Dice）、层级折叠、版本对比（Actual vs Budget / Forecast），并支持双向 Excel / Google Sheets 导入导出。
-3. **🤖 自主 Finance BP 经营备忘录 (Executive Memo & Variance Diagnosis)**：
-   - 月结时 AI 自动运行方差分解，定位根本驱动因子（价量差异、部门超支、转化漏斗衰减），一键生成带 Waterfall 瀑布图与业务建议的 Executive Memo。
-   - **零幻觉穿透**：文档中的所有数字均自带数据来源链接，点击即可打开穿透抽屉。
+### 3.1 因果沙盘画布 (Visual What-If Driver Canvas)
+- 基于 React Flow 构建因果驱动有向无环图（DAG）。
+- 历史期节点绑定底层事实表（Actuals）；未来预测期节点转化为带有数值滑块的驱动因子。
+- 调整滑块数值（如“获客成本调整 +15%”或“推迟 2 个月招聘”），系统在 100ms 内重算损益表与现金跑道，并支持 Base、Bull、Bear 三种情景同屏对比。
+
+### 3.2 多维业财分析网格 (Dynamic Financial Grid)
+- 基于 AG Grid 构建的多维报表视图，保留类似 Excel 的操控习惯。
+- 支持行列切片（Slice & Dice）、层级折叠、版本对比（Actual vs Budget / Forecast），并支持双向 Excel / Google Sheets 导出与导入。
+
+### 3.3 经营分析备忘录与归因 (Executive Memo & Variance Diagnosis)
+- 月结时自动运行量价方差分解，定位根本驱动因子（价量差异、部门超支、转化漏斗变动），生成带 Waterfall 瀑布图与业务建议的文字备忘录。
+- **数字穿透审计**：文档中的所有数值均带有原始数据链接，点击可打开抽屉查看对应的 SQL 查询与明细账分录。
 
 ---
 
 ## 4. 系统整体架构与技术选型
 
-FinMesh 采用 **Go 核心系统 + 轻量 Python 算法微服务 + 租户隔离 DuckDB 存储 + Next.js 现代前端** 的企业级双轨混编架构：
+FinMesh 采用 **Go 核心系统 + Python 算法插件 + 租户隔离 DuckDB 存储 + Next.js 前端** 架构：
 
 ```mermaid
 flowchart TB
@@ -86,7 +87,7 @@ flowchart TB
 
     subgraph GoCore ["Go SaaS 核心后端与 AI 调度中枢 (FinMesh Core)"]
         AuthTenant["多租户与组织权限 (RBAC)"]
-        DataIngestion["智能数据集成流水线\n(CSV/Excel 解析器 + API 连接器)"]
+        DataIngestion["数据集成流水线\n(CSV/Excel 解析器 + API 连接器)"]
         SemanticEngine["声明式语义指标层 (Semantic Metric Engine)"]
         LLMOrchestrator["模型中立推理网关\n(Claude 3.7 / GPT-4o / DeepSeek R1)"]
         DuckDBManager["DuckDB 租户隔离驱动引擎\n(go-duckdb)"]
@@ -94,8 +95,8 @@ flowchart TB
 
     subgraph PythonSidecar ["Python 算法微服务插件 (Sidecar)"]
         ProphetService["时间序列预测 (Prophet / StatsForecast)"]
-        MonteCarloService["高级蒙特卡洛敏感性模拟"]
-        DocOCRService["复杂非结构化财报 OCR 解析"]
+        MonteCarloService["蒙特卡洛模拟"]
+        DocOCRService["非结构化财报凭证解析"]
     end
 
     subgraph StorageLayer ["数据与持久化层 (Storage Layer)"]
@@ -117,17 +118,17 @@ flowchart TB
     GoCore <--> PythonSidecar
 ```
 
-### 4.1 核心架构优势
-- **极高并发与低能耗**：Go 语言高并发、极低内存占用与秒级启动，负责 90% 的业务逻辑、数据调度与 MCP 通信。
-- **列式分析极致性能**：底层计算依托 DuckDB，内存列式矢量执行，千万级交易明细的即时聚合毫秒级完成。
-- **强安全与租户物理级隔离**：每个企业租户拥有专属独立的加密 DuckDB 文件，从物理层杜绝因 LLM 拼装 SQL 遗漏 `tenant_id` 导致的跨企业财务数据泄漏。
-- **算法生态无缝挂载**：通过 Python Sidecar 保留未来扩展 Prophet 时间序列与蒙特卡洛算法的能力。
+### 4.1 架构设计考量
+- **并发性能与资源占用**：Go 语言具有低内存占用与高并发特性，处理 SaaS 业务逻辑、数据调度与 MCP 通信。
+- **内存列式计算**：底层计算使用 DuckDB，通过列式矢量执行完成千万级交易明细的即时聚合。
+- **租户物理级文件隔离**：每个企业租户使用独立的加密 DuckDB 文件，从存储层避免跨租户 SQL 查询数据泄漏风险。
+- **算法微服务插件**：通过 Python Sidecar 提供 Prophet 时间序列与蒙特卡洛算法扩展能力。
 
 ---
 
-## 5. 零幻觉财务审计与数字穿透机制
+## 5. 数值确定性与审计穿透
 
-财务数据的核心底线是**精准确定性（Accuracy）与可审计性（Auditability）**。FinMesh 设立了严格的防幻觉架构规范：
+系统建立明确的防幻觉与审计追踪机制：
 
 ```mermaid
 sequenceDiagram
@@ -154,10 +155,10 @@ sequenceDiagram
     DuckDB-->>WebUI: 弹出数据抽屉展示 32 条客户调价流水
 ```
 
-### 零幻觉三原则：
-1. **严禁大模型心算**：所有汇总、同比、环比、比率计算均在 DuckDB 内由确定性 SQL 执行。
-2. **声明式语义约束**：指标逻辑在语义层全局唯一固化，大模型仅负责意图识别与参数映射。
-3. **数字 100% 可穿透**：所有自动生成的备忘录和报告中的数值，均携带生成查询的指纹与流水溯源证据链。
+### 防幻觉设计规则：
+1. **禁止大模型直接做数值运算**：所有求和、同比、环比、比率计算均在 DuckDB 内由确定性 SQL 执行。
+2. **声明式语义约束**：指标计算公式在语义层统一维护，模型只负责意图解析与参数提取。
+3. **数字可穿透追溯**：自动生成的文字备忘录中的数值均附带查询参数，可随时调出底层凭证。
 
 ---
 
@@ -203,7 +204,7 @@ metrics:
 
 ## 7. Financial MCP Server 规范
 
-FinMesh 原生集成 Model Context Protocol (MCP)，支持外部 Agent（如 Claude Desktop、Cursor、企业自建 Agent）将其作为金融数据智脑直接调用：
+FinMesh 原生集成 Model Context Protocol (MCP)，外部 Agent（如 Claude Desktop、Cursor 或企业内部 Bot）可通过标准协议调取系统能力：
 
 ### 核心 MCP Tools 清单：
 1. `query_financial_metric`：
@@ -223,30 +224,26 @@ FinMesh 原生集成 Model Context Protocol (MCP)，支持外部 Agent（如 Cla
 
 ## 8. 技术栈清单
 
-- **Frontend**: Next.js 15+ (App Router, React 19, TypeScript), Tailwind CSS, Shadcn UI, React Flow (`@xyflow/react`), AG Grid Community, ECharts.
+- **Frontend**: Next.js 15+ (App Router, React 19, TypeScript), Tailwind CSS, Shadcn UI, React Flow (`@xyflow/react`), AG Grid Community, Apache ECharts.
 - **Backend (Core SaaS & MCP)**: Go (Golang 1.23+), Gin/Echo, `go-duckdb`, `mcp-go`, GORM/SQLX.
-- **Python Sidecar (Optional Workers)**: Python 3.11+, FastAPI, Prophet, StatsForecast.
-- **Databases & Engines**: DuckDB (嵌入式列式分析), PostgreSQL 16 (关系元数据与权限), Redis (缓存与任务队列).
-- **LLM Gateway**: OpenAI-compatible adapter supporting Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1 / V3.
+- **Python Sidecar**: Python 3.11+, FastAPI, Prophet, StatsForecast.
+- **Databases & Storage**: DuckDB (嵌入式列式分析), PostgreSQL 16 (关系元数据与权限), Valkey/Redis (缓存与任务队列).
+- **LLM Gateway**: OpenAI-compatible 适配层，支持 Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1 / V3。
 
 ---
 
 ## 9. MVP 交付范围与开发路线图
 
 ### 阶段一：端到端垂直切片 MVP (当前重点)
-- [x] 完成整体产品定义与核心架构论证 (`/grill-me`)
+- [x] 完成整体产品定义与核心架构推演 (`/grill-me`)
 - [ ] 搭建 Go 后端基础骨架并集成 `go-duckdb`
 - [ ] 实现标准财务 CSV/Excel（GL 总账、收入流水）拖拽入库与 DuckDB 事实表写入
 - [ ] 实现声明式语义指标计算引擎（基础 P&L 核心指标）
 - [ ] 实现 Go 原生 MCP Server（支持指标查询与方差归因工具）
-- [ ] 搭建 Next.js 前端工作台（P&L 多维网格 + React Flow 驱动沙盘 + AI 穿透备忘录）
+- [ ] 搭建 Next.js 前端工作台（P&L 多维网格 + React Flow 驱动沙盘 + 穿透备忘录）
 - [ ] 端到端实测数据平衡性与穿透下钻证据链
 
 ### 阶段二：集成拓展与双向联动
 - [ ] 接入 QuickBooks, Xero, Stripe API 直接同步
 - [ ] 开放 Excel / Google Sheets 双向同步插件
 - [ ] 引入 Python Sidecar 支持 Prophet 时间序列趋势预测
-
----
-
-*FinMesh — Empowering Finance Business Partners with Precision, Speed, and Intelligence.*
