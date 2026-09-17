@@ -21,6 +21,7 @@
 | `SRC-0017` | 2026-09-17 | 零售业财岗位深度调研报告 | 行业深度调研 | Industry Benchmark | `01-inputs/2026-09-17-retail-fpna-fbp-cross-region-research.md` | 零售/全渠道业财四维岗位矩阵、单店模型与八大核心量化指标 | 已深度分析，沉淀为零售场景基线 |
 | `SRC-0018` | 2026-09-17 | 财务规划与内控审计一体化SaaS调研 | 行业深度调研 | Industry Benchmark | `01-inputs/2026-09-17-fpna-grc-integrated-saas-opportunity-research.md` | 中型企业“产品悬崖”、PVM量价分解、活体RCM与CCM全量监控 | 已深度分析，指导价值主张与核心模块 |
 | `SRC-0019` | 2026-09-17 | 现代高质感SaaS与企业级UI/UX范式 | 设计研究报告 | Industry Benchmark | `01-inputs/2026-09-17-modern-saas-enterprise-ui-ux-design-paradigms.md` | Bento Grid、Cmd+K、Geist/Linear 风格、EIS 高密度数据表格 | 已确立为产品交互与视觉规范基准 |
+| `SRC-0020` | 2026-09-17 | 开源技术选型与许可证合规矩阵 | 技术选型报告 | Founder / PM & Community | `01-inputs/2026-09-17-open-source-license-compliance-and-tech-selection.md` | 商业 SaaS 许可证友好度、AGPLv3 隔离、Apache ECharts/AG Grid 与 Valkey 选型 | 已深度分析，确立工程选型基线 |
 
 ## 登记规则
 - 原始材料不静默改写。
