@@ -1,8 +1,16 @@
-# 开源技术选型、商业许可证合规矩阵与推荐清单
+# 开源技术选型、商业许可证合规矩阵与推荐清单 / Open-Source License Compliance & Tech Stack
+
+[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文版本
 
 - **来源编号**：`SRC-0020`
 - **登记日期**：2026-09-17
 - **主题**：FinMesh 开源技术栈审查、商业 SaaS 许可证边界与扩展清单
+
 
 ---
 
@@ -68,3 +76,78 @@
 ### 3.3 缓存组件协议变动防御（以 Redis 为例）
 - **风险描述**：Redis 官方已转向 RSALv2 / SSPLv1 双源可用协议，非完全开源许可。
 - **避险方案**：选用 Linux 基金会主导的 Valkey（BSD-3-Clause），保持开源属性与协议兼容。
+
+---
+
+<a name="english"></a>
+## English Version
+
+- **Source ID**: `SRC-0020`
+- **Date**: 2026-09-17
+- **Subject**: FinMesh open-source stack review, commercial SaaS license boundaries & expansion recommendations
+
+---
+
+### 1. Core Technology Stack Landscape & Compliance Review
+
+| Technical Tier | Open-Source Project | License | Commercial Boundary & Constraints | FinMesh Adoption Strategy & Role |
+| :--- | :--- | :--- | :--- | :--- |
+| **Backend Infrastructure** | Temporal | MIT | Permissive: Core services and SDKs are freely commercializable and embeddable in closed-source SaaS. | Long-running workflow orchestration and cross-system retry management. |
+| | NATS JetStream | Apache 2.0 | Permissive: Includes clear patent grant clauses. | High-throughput low-latency event streaming and state broadcasts. |
+| | TimescaleDB | Apache 2.0 / TSL | Dual license: Core features are Apache 2.0; compression and continuous aggregation fall under TSL. Permitted as SaaS internal DB; direct DBaaS hosting prohibited. | Alternative underlying store for time-series financial metrics. |
+| | ClickHouse | Apache 2.0 | Permissive: Massively parallel columnar analytics. | High-volume log analytics and full transaction scanning alternative. |
+| | Casbin | Apache 2.0 | Permissive: Embeddable library format. | Fine-grained multi-tenant RBAC permission engine. |
+| | Ory Kratos | Apache 2.0 | Permissive: Self-hosted identity and SSO integration. | Enterprise identity authentication and directory federation. |
+| | Apache APISIX | Apache 2.0 | Permissive: Apache top-level governance with low legal risk. | External API gateway and rate limiting. |
+| **AI / Multi-Agent** | LangGraph | MIT | Permissive: Free orchestration and encapsulation. | Multi-step agent state machine orchestration. |
+| | OpenBB Platform | AGPLv3 | **Network Copyleft Risk**: Modifying source code and providing network access triggers open-source obligations. | **Container Isolation**: Run as an independent microservice accessed strictly via REST APIs; never import source directly. |
+| | FinGPT | MIT | Code is MIT, but underlying base models carry commercial usage tier constraints. | Financial analytical fine-tuning experiments. |
+| | NeMo Guardrails | Apache 2.0 | Permissive: NVIDIA official open source. | Safety guardrails for financial dialogue and SQL generation. |
+| | LiteLLM | MIT | Permissive: Proxy core is MIT (some admin features require enterprise license). | Multi-model proxy gateway (OpenAI-compatible, Anthropic-compatible, and self-hosted models). |
+| | Qdrant | Apache 2.0 | Permissive: Self-hosted vector clustering. | Financial document unstructured RAG vector retrieval. |
+| **Frontend UI** | shadcn/ui | MIT | Permissive: Components imported as direct source code; zero external runtime lock-in. | Core web component library baseline. |
+| | Tremor | Apache 2.0 | Permissive: Customizable KPI card styles. | Dashboard KPI cards and mini sparklines. |
+| | Lightweight Charts | Apache 2.0* | **Mandatory Attribution**: Free for commercial use but requires persistent TradingView logo watermark and links. | **Compliant Alternative**: Adopt Apache ECharts to eliminate third-party mandatory branding from commercial SaaS. |
+| | TanStack Table | MIT | Permissive: Headless table logic library without preset styles. | Data table state, pagination, and sorting management. |
+
+---
+
+### 2. FinMesh Architecture Recommended Additions
+
+Aligned with FinMesh's **Go Core + DuckDB Isolation + Next.js Canvas + MCP** architecture, the following open-source additions are recommended:
+
+| Technical Tier | Recommended Project | License | License Characteristics & Rationale | Specific Responsibility in FinMesh |
+| :--- | :--- | :--- | :--- | :--- |
+| **Data & Computation** | DuckDB | MIT | Permissive: In-process embedded columnar OLAP supporting per-tenant isolated database files. | **Core Computation Engine**: Executes `fact_gl` aggregations, PVM decomposition, and dynamic PIVOT/UNPIVOT schedules. |
+| | Apache Arrow (Go) | Apache 2.0 | Permissive: Cross-language zero-copy columnar in-memory standard. | High-speed memory exchange between Go core backend and Python algorithm sidecars. |
+| | pgx / pgxpool | MIT | Permissive: Native PostgreSQL driver and toolkit for Go. | User auth, tenant metadata, declarative metric specifications, and audit logs. |
+| | Valkey | BSD-3-Clause | Permissive: Linux Foundation-backed fork avoiding Redis dual-license controversies. | In-memory metric caching, simulation state caching, and distributed locks. |
+| **Scheduling & Events** | Asynq | MIT | Permissive: Redis-backed distributed task queue in Go with lightweight operations. | Month-end batch tasks, large file parsing, background report generation, and notifications. |
+| | Watermill | MIT | Permissive: Go-native event-driven messaging and event streaming library. | Drives ledger change events, audit trails, and internal control RCM triggers. |
+| **MCP & Agents** | mcp-go (mark3labs) | MIT | Permissive: Active Go Model Context Protocol implementation supporting Stdio/SSE. | **Core Open Protocol Stack**: Implements FinMesh native Financial MCP Server. |
+| | E2B Code Interpreter | Apache 2.0 | Permissive: Sandboxed container runtime for running untrusted generated code. | Executes temporary Python analytics scripts generated by LLMs in full host isolation. |
+| **Frontend & Canvas** | @xyflow/react (React Flow) | MIT | Permissive: Node-based UI and DAG engineering library. | **Causal What-If Canvas**: Renders ARR, CAC, and Runway driver trees with live simulation sliders. |
+| | Apache ECharts | Apache 2.0 | Permissive: **Zero attribution/watermark mandates**; rich financial chart series. | **Standard Financial Charting**: Renders PVM waterfalls, cash runway convergence curves, and executive charts. |
+| | AG Grid Community | MIT | Permissive: High-performance virtualized scrolling, column pinning, and cell editing. | **Multi-dim P&L Matrix**: Delivers Excel-like high-density interaction with tabular figure alignments. |
+| | cmdk | MIT | Permissive: Headless fast command palette component. | **Cmd+K Command Palette**: Fast keyboard navigation for scenario switching, search, and action dispatch. |
+
+---
+
+### 3. Commercial License Risk Boundaries & Defensive Guardrails
+
+#### 3.1 AGPLv3 Network Copyleft Defense (e.g., OpenBB)
+- **Risk Assessment**: AGPLv3 contains strong network copyleft clauses. Statically linking or directly importing OpenBB source into the core Go backend risks forcing the commercial system to disclose proprietary source code.
+- **Isolation Architecture**:
+  - Encapsulate OpenBB within an independent container image deployed as an external data microservice.
+  - The main system interacts solely through standard HTTP/gRPC boundaries, preventing copyleft contamination across network boundaries.
+
+#### 3.2 Commercial Brand Hygiene (e.g., TradingView)
+- **Risk Assessment**: TradingView Lightweight Charts enforces attribution, mandating watermarks and external links within user-facing charts.
+- **Clean Alternative**:
+  - Adopt Apache ECharts (pure Apache 2.0, zero attribution mandates) for core financial waterfall and trend visualizations.
+  - Adopt AG Grid Community (MIT) for high-density grids, ensuring 100% white-label commercial independence.
+
+#### 3.3 Cache Component License Shift Defense (e.g., Redis)
+- **Risk Assessment**: Redis transitioned to RSALv2 / SSPLv1 dual source-available licensing, deviating from pure open source.
+- **Defensive Choice**: Standardize on Linux Foundation-governed Valkey (BSD-3-Clause) to preserve pure open-source licensing and protocol compatibility.
+

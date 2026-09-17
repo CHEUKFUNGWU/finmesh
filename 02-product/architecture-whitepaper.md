@@ -1,8 +1,14 @@
-# FinMesh 架构与产品白皮书
+# FinMesh 架构与产品白皮书 / Architecture & Product Whitepaper
+
+[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文白皮书
 
 > 面向 FP&A 与财务 BP 的业财协同与沙盘推演系统，提供分析工作台与 MCP 接口。
 
----
 
 ## 目录
 
@@ -247,3 +253,257 @@ FinMesh 原生集成 Model Context Protocol (MCP)，外部 Agent（如 Claude De
 - [ ] 接入 QuickBooks, Xero, Stripe API 直接同步
 - [ ] 开放 Excel / Google Sheets 双向同步插件
 - [ ] 引入 Python Sidecar 支持 Prophet 时间序列趋势预测
+
+---
+
+<a name="english"></a>
+## English Whitepaper
+
+> A collaborative FP&A and Finance BP operating system with driver-based simulation, interactive analytics grids, and native Financial MCP interfaces.
+
+---
+
+### Table of Contents
+
+- [1. Product Positioning & Problem Statement](#1-product-positioning--problem-statement)
+- [2. Target Customers & Value Proposition (ICP)](#2-target-customers--value-proposition-icp)
+- [3. Core Interaction Paradigms](#3-core-interaction-paradigms)
+- [4. System Architecture & Technical Selection](#4-system-architecture--technical-selection)
+- [5. Numerical Determinism & Audit Traceability](#5-numerical-determinism--audit-traceability)
+- [6. Financial Data Schema & Semantic Metric Layer](#6-financial-data-schema--semantic-metric-layer)
+- [7. Financial MCP Server Specifications](#7-financial-mcp-server-specifications)
+- [8. Technology Stack Inventory](#8-technology-stack-inventory)
+- [9. MVP Scope & Delivery Roadmap](#9-mvp-scope--delivery-roadmap)
+
+---
+
+### 1. Product Positioning & Problem Statement
+
+Financial Planning & Analysis (FP&A) and Finance Business Partner (Finance BP) teams face three systematic bottlenecks in daily operations:
+1. **Fragmented Data Definitions**: Discrepancies between General Ledger (GL) accounts, commercial transaction feeds (Stripe/Shopify/CRM), and payroll rosters force analysts to spend days manually cleaning and reconciling spreadsheets during month-end close.
+2. **Fragile Spreadsheet Modeling**: Complex cross-period spreadsheet models break easily, making it difficult to deliver real-time What-If scenario simulations requested by management.
+3. **LLM Calculation Hallucinations**: Direct arithmetic calculation by generative AI models suffers from mental math drift and lacks audit trail lineage, failing CFO and regulatory audit standards.
+
+**FinMesh Positioning**:
+FinMesh is a software platform designed for corporate financial analytics and operational alignment. Powered by deterministic SQL engines, it delivers graphical causal simulation sandboxes and structured variance diagnosis, while exposing financial metric querying and scenario modeling to external AI agents via standard MCP protocols.
+
+---
+
+### 2. Target Customers & Value Proposition (ICP)
+
+FinMesh serves both Mid-Market / Scale-up enterprises and high-growth SMBs:
+
+| Dimension | Scale-up / Mid-Market (100 - 1,000 FTEs) | High-Growth SMB / Cross-Border (< 100 FTEs) |
+| :--- | :--- | :--- |
+| **Characteristics** | Rapid business iteration, dedicated Finance BPs, multi-departmental alignment | Lean team, plug-and-play demand, focus on cash runway and burn control |
+| **Core Pain Points** | Inconsistent cross-department metrics, prolonged variance analysis, complex budget approval workflows | Lack of dedicated FP&A analysts, fragmented spreadsheet templates, blind spots in real-time cash visibility |
+| **FinMesh Solution** | Automated variance waterfall attribution, multi-dimensional RBAC, standard API and data warehouse integrations | Drag-and-drop batch ingestion, pre-built SaaS/e-commerce metric templates, live cash runway monitoring |
+
+---
+
+### 3. Core Interaction Paradigms
+
+The platform delivers three interconnected workflow modules:
+
+```mermaid
+graph LR
+    A[P&L Multi-dim Grid] <--> B[React Flow What-If Canvas]
+    B <--> C[Executive Memo & Waterfall]
+    C <--> A
+```
+
+#### 3.1 Visual What-If Driver Canvas
+- Built on React Flow to model causal driver Directed Acyclic Graphs (DAGs).
+- Historical nodes bind directly to underlying DuckDB fact records (Actuals); future forecast nodes transform into dynamic driver factors with interactive sliders and formulas.
+- Adjusting sliders (e.g., "+15% CAC increase" or "delay hiring by 2 months") recomputes the entire P&L and cash runway in under 100ms, supporting side-by-side comparison across Base, Bull, and Bear scenarios.
+
+#### 3.2 Dynamic Financial Grid
+- High-performance multi-dimensional reporting grid built on AG Grid, preserving familiar Excel navigation.
+- Supports slice-and-dice, hierarchical rollup/collapse, scenario comparison (Actual vs Budget / Forecast), and bidirectional Excel/Google Sheets export and import.
+
+#### 3.3 Executive Memo & Variance Diagnosis
+- Automatically executes Price-Volume-Mix (PVM) variance decomposition during month-end close, isolating root drivers (price/volume deltas, department overspending, conversion funnel shifts) and generating narrative memos with waterfall bridges.
+- **Zero-Hallucination Audit Drill-down**: Every figure in the memo is an interactive link that opens a drawer showing the underlying SQL query and individual transaction ledger entries.
+
+---
+
+### 4. System Architecture & Technical Selection
+
+FinMesh adopts a hybrid enterprise architecture: **Go Core SaaS + Python Algorithm Sidecar + Tenant-Isolated DuckDB Storage + Next.js Web Frontend**:
+
+```mermaid
+flowchart TB
+    subgraph ClientLayer ["Client & Agent Layer"]
+        WebUI["Next.js Web Workspace\n(React Flow Canvas + AG Grid + ECharts)"]
+        ExternalAgent["External AI Agent\n(Claude Desktop / Cursor / Internal Bot)"]
+        ExcelAddin["Excel / Google Sheets\nBidirectional Add-in & Export"]
+    end
+
+    subgraph GatewayLayer ["Gateway & Protocol Layer"]
+        APIGateway["Go API Gateway\n(REST / WebSocket / SSE Streams)"]
+        MCPServer["Go Native MCP Server\n(Remote SSE/HTTP + Local Stdio Bridge)"]
+    end
+
+    subgraph GoCore ["FinMesh Go Core & AI Orchestrator"]
+        AuthTenant["Multi-Tenancy & RBAC"]
+        DataIngestion["Data Ingestion Pipeline\n(CSV/Excel Parser + API Connectors)"]
+        SemanticEngine["Declarative Semantic Metric Engine"]
+        LLMOrchestrator["Model-Neutral Gateway\n(OpenAI/Anthropic-compatible / Response API / Self-hosted)"]
+        DuckDBManager["DuckDB Tenant Engine\n(go-duckdb)"]
+    end
+
+    subgraph PythonSidecar ["Python Algorithm Sidecar"]
+        ProphetService["Time-Series Forecasting (Prophet / StatsForecast)"]
+        MonteCarloService["Monte Carlo Simulation"]
+        DocOCRService["Financial Document OCR & Extraction"]
+    end
+
+    subgraph StorageLayer ["Storage Layer"]
+        PGMetadata["PostgreSQL\n(Organizations, Users, RBAC, Semantic Metadata)"]
+        TenantDuckDB["Tenant DuckDB Encrypted Files\n(fact_gl, fact_revenue, fact_headcount, fact_drivers)"]
+        ObjectStorage["S3 / R2 Object Storage\n(Source Vouchers, Snapshots, Generated PDF/PPT)"]
+    end
+
+    WebUI --> APIGateway
+    ExternalAgent --> MCPServer
+    ExcelAddin --> APIGateway
+
+    APIGateway --> GoCore
+    MCPServer --> GoCore
+
+    GoCore <--> PGMetadata
+    GoCore <--> TenantDuckDB
+    GoCore <--> ObjectStorage
+    GoCore <--> PythonSidecar
+```
+
+#### 4.1 Architectural Rationales
+- **Concurrency & Resource Footprint**: Go delivers high concurrency with minimal memory overhead, managing SaaS business logic, data scheduling, and MCP communication.
+- **In-Memory Columnar Computation**: DuckDB executes vectorized aggregations over millions of ledger entries in sub-seconds.
+- **Physical File Tenant Isolation**: Each enterprise tenant maintains an independent, encrypted DuckDB file, eliminating cross-tenant SQL data leakage at the storage tier.
+- **Pluggable Algorithm Sidecars**: Python sidecars handle Prophet time-series modeling and Monte Carlo simulations on demand.
+
+---
+
+### 5. Numerical Determinism & Audit Traceability
+
+The platform enforces strict zero-hallucination guardrails and an unbroken audit trail:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as CFO / Finance BP
+    participant WebUI as Next.js Workspace / Memo
+    participant GoCore as Go Orchestrator
+    participant LLM as Inference Model (OpenAI/Anthropic-compatible)
+    participant Semantics as Semantic Metric Catalog
+    participant DuckDB as Tenant DuckDB
+    
+    User->>WebUI: Prompt: "Why is Q2 gross margin 3.2% below budget?"
+    WebUI->>GoCore: Dispatch variance attribution request
+    GoCore->>Semantics: Retrieve gross_margin metric definitions & fact mappings
+    GoCore->>LLM: Inject context and structured SQL prompt
+    LLM-->>GoCore: Return deterministic parameters & analysis framework SQL
+    GoCore->>DuckDB: Execute PVM decomposition query (SQL)
+    DuckDB-->>GoCore: Return exact computation (Price: -$120K, Volume: +$45K)
+    GoCore->>LLM: Inject exact numbers; prompt narrative drafting (numbers locked)
+    LLM-->>GoCore: Return memo containing formatted reference tokens
+    GoCore-->>WebUI: Render memo ($120K rendered as interactive drill card)
+    User->>WebUI: Click $120K token
+    WebUI->>DuckDB: Request underlying transaction lines and SQL audit chain
+    DuckDB-->>WebUI: Open drawer displaying 32 customer price adjustment rows
+```
+
+#### Anti-Hallucination Design Rules:
+1. **Prohibit Direct LLM Arithmetic**: All summations, growth rates, ratios, and variances are calculated inside DuckDB via deterministic SQL.
+2. **Declarative Semantic Constraints**: Formulas are maintained strictly in the semantic catalog; LLMs only extract user intent and parameters.
+3. **Interactive Lineage Drill-down**: All generated numbers in memos embed query parameters, enabling users to audit source transactions at any time.
+
+---
+
+### 6. Financial Data Schema & Semantic Metric Layer
+
+#### 6.1 Standard Fact Tables (Stored in Tenant DuckDB)
+- **`fact_general_ledger`**: Double-entry journal lines (date, account code, debit/credit, amount, department, currency, memo).
+- **`fact_revenue_movements`**: Commercial/SaaS subscription events (customer ID, movement type New/Expansion/Churn, MRR/ARR, product).
+- **`fact_headcount_roster`**: Headcount and payroll costs (employee, title, department, start/end date, fully-burdened cost).
+- **`fact_operational_metrics`**: Operational driver metrics (traffic, qualified leads, conversion rates, unit costs).
+- **`dim_scenario`**: Scenario dimension (Actual, Budget_v1, Forecast_Q3, WhatIf_Bull).
+
+#### 6.2 Declarative Metric Specification Sample (YAML)
+```yaml
+version: 1
+metrics:
+  - name: arr
+    display_name: Annual Recurring Revenue
+    category: Revenue
+    formula: "SUM(arr_amount)"
+    base_table: fact_revenue_movements
+    default_filter: "movement_type != 'Churn'"
+    dimensions: [customer_id, product_id, date]
+
+  - name: gross_margin_pct
+    display_name: Gross Margin (%)
+    category: Profitability
+    formula: "(SUM(revenue) - SUM(cogs)) / NULLIF(SUM(revenue), 0) * 100"
+    derived_from: [revenue, cogs]
+
+  - name: net_burn
+    display_name: Monthly Net Burn
+    category: CashFlow
+    formula: "SUM(operating_expenses) + SUM(cogs) - SUM(revenue)"
+    
+  - name: runway_months
+    display_name: Cash Runway (Months)
+    category: Solvency
+    formula: "latest_cash_balance / NULLIF(avg_3m_net_burn, 0)"
+```
+
+---
+
+### 7. Financial MCP Server Specifications
+
+FinMesh provides native Model Context Protocol (MCP) support, enabling external agents (Claude Desktop, Cursor, enterprise bots) to invoke financial capabilities:
+
+#### Core MCP Tools:
+1. `query_financial_metric`:
+   - Parameters: `workspace_id`, `metric_name`, `start_date`, `end_date`, `group_by`, `scenario`
+   - Returns: Time-series values, metric definition formula, executed SQL query.
+2. `explain_variance`:
+   - Parameters: `workspace_id`, `metric_name`, `base_scenario`, `compare_scenario`, `period`
+   - Returns: Automated variance breakdown (price/volume split, departmental contribution rankings).
+3. `simulate_scenario`:
+   - Parameters: `workspace_id`, `driver_overrides` (e.g., `{"cpm_growth": 0.1, "hiring_delay_months": 3}`)
+   - Returns: Simulated P&L schedule and impact on cash runway days.
+4. `drill_down_transactions`:
+   - Parameters: `workspace_id`, `metric_name`, `filters`, `limit`
+   - Returns: Underlying granular transaction records backing the metric.
+
+---
+
+### 8. Technology Stack Inventory
+
+- **Frontend**: Next.js 15+ (App Router, React 19, TypeScript), Tailwind CSS, Shadcn UI, React Flow (`@xyflow/react`), AG Grid Community, Apache ECharts.
+- **Backend (Core SaaS & MCP)**: Go (Golang 1.23+), Gin/Echo, `go-duckdb`, `mcp-go`, GORM/SQLX.
+- **Python Sidecar**: Python 3.11+, FastAPI, Prophet, StatsForecast.
+- **Databases & Storage**: DuckDB (embedded columnar OLAP), PostgreSQL 16 (relational metadata & RBAC), Valkey (cache & queue).
+- **LLM Gateway**: Model-neutral gateway supporting OpenAI-compatible API, Anthropic-compatible API, Response API, and local/cloud self-hosted models (vLLM / Ollama).
+
+---
+
+### 9. MVP Scope & Delivery Roadmap
+
+#### Phase 1: End-to-End Vertical Slice MVP (Current Focus)
+- [x] Product definition and architecture stress-testing completed (`/grill-me`)
+- [ ] Initialize Go backend scaffolding with `go-duckdb` integration
+- [ ] Implement drag-and-drop ingestion for standard financial CSV/Excel into DuckDB fact tables
+- [ ] Build declarative semantic metric engine (core P&L metrics)
+- [ ] Implement Go native MCP Server with metric query and variance attribution tools
+- [ ] Build Next.js frontend workspace (P&L grid + React Flow canvas + drill-down memo)
+- [ ] Verify trial balance reconciliation and audit drill-down end-to-end
+
+#### Phase 2: Integrations & Bidirectional Sync
+- [ ] Direct API connectors for QuickBooks, Xero, and Stripe
+- [ ] Bidirectional Excel / Google Sheets add-ins
+- [ ] Python sidecar integration for Prophet time-series forecasting
+

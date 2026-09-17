@@ -1,8 +1,16 @@
-# 中国大陆与香港零售业财务BP、FP&A、运营分析及经营分析岗位深度调研报告
+# 中国大陆与香港零售业财务BP、FP&A、运营分析及经营分析岗位深度调研报告 / Retail FP&A & FBP Cross-Region Research
+
+[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文版本
 
 - **来源编号**：`SRC-0017`
 - **登记日期**：2026-09-17
 - **主题**：零售业财四大核心岗位职责、陆港地域生态差异、协同决策机制与核心量化指标模型
+
 
 ---
 
@@ -79,3 +87,89 @@
 | **Inventory Turnover Days (库存周转天数)** | $\text{Turnover Days} = \frac{\text{平均库存余额}}{\text{COGS (销货成本)}} \times 365$ | 评估营运资本与供应链效率，运营与财务BP重点关注 |
 | **Rent-to-Sales Ratio (租销比)** | $\text{Rent-to-Sales} = \frac{\text{店铺基本租金} + \text{营业额提成租金}}{\text{门店净销售额}} \times 100\%$ | 评估线下门店租金抗风险度，香港及线下实体风控线 |
 | **CAC & LTV (获客成本与生命周期价值)** | $\text{LTV} / \text{CAC} \ge 3$ 为健康基准，$\text{Payback Period} \le 12 \text{ months}$ | 线上零售与会员制体系营销 ROI，经分与财务BP关注 |
+
+---
+
+<a name="english"></a>
+## English Version
+
+- **Source ID**: `SRC-0017`
+- **Date**: 2026-09-17
+- **Subject**: Responsibilities across four retail commercial roles, regional ecosystem differences between Mainland China and Hong Kong, collaborative decision flows, and quantitative metric models
+
+---
+
+### 1. Role Profiles & Job Description Analysis
+
+Amid consumer spending transitions, omnichannel integration (O2O), and data-driven management, modern retail organizations have undergone structural realignment. Four core data and decision-support roles form the operational foundation:
+
+#### 1.1 Finance Business Partner (Finance BP)
+- **Positioning**: Commercial advisor embedded directly in business units or regional operations, integrating financial governance, ROI assessment, and capital efficiency into frontline commercial actions.
+- **Market Requirements**:
+  - Mainland China: Deep understanding of online platform operations, cost reduction levers, and unpacking ERP data (SAP/Oracle).
+  - Hong Kong & Multinationals (JD HK, DFI Retail Group): 3-6+ years commercial finance, CPA qualification (HKICPA / ACCA / CPA Australia), mastery of store unit economics and omnichannel margins.
+- **Daily Operations**: Reviews promotional subsidies, channel expansions, and marketing plans; builds pre-investment financial models (ROI, breakeven); monitors gross margin variance and inventory obsolescence.
+
+#### 1.2 Financial Planning & Analysis (FP&A)
+- **Positioning**: Strategic navigator for top-level corporate financial planning, managing consolidated P&L, cash flow, and balance sheet models.
+- **Market Requirements**: Multinational retail groups (A.S. Watson, Prada, Shiseido) require ownership of Annual Operating Plans (AOP), rolling forecasts, variance decomposition, and bilingual C-suite executive reviews.
+- **Daily Operations**: Coordinates month-end financial close, interprets P&L variances, leads executive review meetings, consolidates business line forecast submissions, and runs multi-scenario stress tests during budgeting.
+
+#### 1.3 Operations Analyst
+- **Positioning**: Operational diagnostician for retail execution, fulfillment efficiency, inventory turnover, store labor productivity, sales per square foot, and customer experience.
+- **Market Requirements**: Apple Retail, Furla, etc., require advanced SQL, Python, and BI dashboard skills (Tableau/Power BI) combined with frontline retail SOP fluency.
+- **Daily Operations**: Tracks foot traffic, conversion rate, units per transaction (UPT), returns, and delivery fulfillment SLAs; conducts field inspections to optimize labor schedules and fulfillment paths.
+
+#### 1.4 Commercial / Business Analyst
+- **Positioning**: Strategic intelligence partner reporting to BU leadership, retail operations directors, or corporate strategy teams to unlock margin expansion.
+- **Market Requirements**: Evaluates store format profitability, category mix margins, and capital investment feasibility across regional channels.
+- **Daily Operations**: Leads Monthly Business Reviews (MBR), conducts Sales-Inventory-Margin analyses, identifies slow-moving inventory and high-potential SKUs, and monitors competitor price changes.
+
+---
+
+### 2. Functional Matrix Comparison & Collaborative Decision Flows
+
+#### 2.1 Six-Dimension Role Comparison Matrix
+
+| Dimension | Finance BP | FP&A Analyst | Operations Analyst | Commercial Analyst |
+| :--- | :--- | :--- | :--- | :--- |
+| **Core Goal** | Ensure business units achieve P&L and cash targets under controlled risk | Ensure precision in corporate financial plans, capital allocation, and liquidity | Optimize retail operational efficiency, reduce costs, enhance fulfillment | Drive commercial growth, discover new profit models, optimize mix |
+| **Department** | Finance (embedded) or Commercial Finance | Corporate / Group Finance | Retail Ops, Supply Chain, Logistics | Strategy, Commercial Analysis, Business Frontend |
+| **Data Focus** | BU P&L, project ROI, promotion net loss, unit economics | Consolidated 3 statements, budget variance, OPEX/CAPEX | Foot traffic, conversion, sales/sq ft, UPT, turnover, SLA | GMV, net revenue, take rate, category mix, LTV, market share |
+| **Key Deliverable** | Project financial assessments, cost reduction plans, campaign retros | Annual budget packs, executive decks, rolling forecast models | Diagnostic reports, real-time BI dashboards, SOP improvements | MBR reports, category/channel recommendations, business cases |
+| **Time Horizon** | Near-to-medium term (current actions to quarter) | Medium-to-long term (annual budget to 3-5 year plan) | Daily/weekly granularity (process improvement) | Short-to-medium term (monthly/quarterly commercial strategy) |
+| **Key Collaborators**| BU Heads, Merchandising, Channel Ops, Marketing | CFO, Corporate Controller, HR Director, Division CFOs | Store Managers, Warehouse Supervisors, Logistics, Data Eng | COO, Category Directors, BD, Market Research |
+
+#### 2.2 Cross-Department Decision Flow Example (Opening Frontline Dark Stores)
+1. **Commercial Feasibility**: Commercial Analyst assesses on-demand delivery density, competitor network layouts, and potential GMV/category mix.
+2. **Operational Planning**: Operations Analyst designs picking workflows, measuring labor productivity, packing SLAs, and courier delivery radii.
+3. **Finance BP Actuarial Model**: Builds dark store unit economic models incorporating rent, fulfillment, depreciation, and marketing subsidies to calculate order-level margin and breakeven timelines.
+4. **FP&A Consolidation**: Aggregates CAPEX and cash requirements into group liquidity forecasts for board-level review and authorization.
+
+---
+
+### 3. Regional Ecosystem Differences: Mainland China vs. Hong Kong
+
+| Dimension | Mainland China Retail Market | Hong Kong Retail Market |
+| :--- | :--- | :--- |
+| **Dominant Formats** | On-demand retail (O2O), live-streaming commerce, dark stores, fresh grocery chains | Brick-and-mortar supermarket/pharmacy chains, luxury boutiques, duty-free outlets |
+| **Primary Cost Drivers** | Customer Acquisition Cost (CAC), fulfillment delivery, marketing subsidies | Occupancy costs (store rent), frontline labor wages, international freight |
+| **Tool Preferences** | SQL, Python, Hive, DataWorks, Power BI, Feishu/DingTalk BI | Advanced Excel (Financial Modeling), Power BI, Tableau, SAP, Oracle, NetSuite |
+| **Qualifications** | Emphasis on hands-on big data analytics and tech-firm project experience; CPA/CMA preferred | Strict demand for formal professional certifications (HKICPA, ACCA, CPAA) and Big 4 audit pedigree |
+| **Data Granularity** | SKU level, customer journey path, real-time transaction events | Store format level, category level, APAC regional level |
+
+---
+
+### 4. Retail Core Metric System & Quantitative Models
+
+| Metric Name | Formula / Core Logic | Operational Context & Lead Role |
+| :--- | :--- | :--- |
+| **GMV (Gross Merchandise Value)** | $\text{GMV} = \text{Sales} + \text{Cancellations} + \text{Rejections} + \text{Returns}$ | Measures gross transaction volume across all channels; Commercial Analyst lead |
+| **Net Sales** | $\text{Net Sales} = \text{Gross Sales} - \text{Returns} - \text{Allowances} - \text{Discounts}$ | Revenue cornerstone for GAAP/IFRS statements; Finance BP & FP&A lead |
+| **SSSG (Same-Store Sales Growth)** | $\text{SSSG} = \frac{\text{Mature Store Sales}_{t} - \text{Mature Store Sales}_{t-1}}{\text{Mature Store Sales}_{t-1}} \times 100\%$ | Evaluates organic store-level productivity excluding new openings; Retail executive lead |
+| **Unit Economics** | $\text{Contribution Margin} = \text{Net Revenue per Order} - \text{COGS} - \text{Fulfillment} - \text{Direct Marketing}$ | Assesses viability of dark stores, new business models, or individual outlets; Finance BP lead |
+| **Take Rate** | $\text{Take Rate} = \frac{\text{Total Commission \& Fees}}{\text{Platform GMV}} \times 100\%$ | Measures monetization efficiency of e-commerce/marketplace models; Commercial Analyst lead |
+| **Inventory Turnover Days** | $\text{Turnover Days} = \frac{\text{Average Inventory Balance}}{\text{COGS}} \times 365$ | Evaluates working capital velocity and supply chain efficiency; Operations & Finance BP lead |
+| **Rent-to-Sales Ratio** | $\text{Rent-to-Sales} = \frac{\text{Base Rent} + \text{Turnover Rent}}{\text{Net Store Sales}} \times 100\%$ | Assesses store lease risk margins; essential risk benchmark in Hong Kong and physical retail |
+| **CAC & LTV** | $\text{LTV} / \text{CAC} \ge 3\text{ (Healthy)}, \quad \text{Payback Period} \le 12 \text{ months}$ | Evaluates customer acquisition ROI across digital channels and membership programs; Finance BP lead |
+

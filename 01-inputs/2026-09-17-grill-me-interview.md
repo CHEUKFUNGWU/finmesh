@@ -1,10 +1,18 @@
-# 原始输入记录：FinMesh 产品与架构全景推演访谈实录 (/grill-me)
+# 原始输入记录：FinMesh 产品与架构全景推演访谈实录 / Product & Architecture Grill-Me Transcript
+
+[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文版本
 
 - **来源编号**：`SRC-0001`
 - **日期**：2026-09-17
 - **主题**：通用 FP&A + Finance BP 平台产品边界、技术架构与交付路径决策树推演
 - **参与方**：Founder / PM & Antigravity Agent
 - **性质**：原始讨论材料完整实录（Verbatim Transcript），保留所有决策分支、备选方案考量与最终答复。
+
 
 ---
 
@@ -223,3 +231,232 @@ Golang 做 Backend 与 AI 中台完全可行，在生产环境具备高并发、
 ### 用户确认答复
 > **`选项 1 (Recommended)`**
 > （决策结论：采用模型中立网关适配层，支持 OpenAI-compatible API、Anthropic-compatible API、Response API 以及本地/云端自托管模型接入。）
+
+---
+
+<a name="english"></a>
+## English Version
+
+- **Source ID**: `SRC-0001`
+- **Date**: 2026-09-17
+- **Subject**: Decision tree exploration of product boundaries, tech architecture, and roadmap for a universal FP&A + Finance BP SaaS
+- **Participants**: Founder / PM & Antigravity Agent
+- **Nature**: Complete verbatim transcript of foundational planning discussions, preserving all decision branches, alternative trade-offs, and final approvals.
+
+---
+
+### Round 1: Core Entry Point & Ideal Customer Profile (ICP)
+
+#### Question
+When building a universal FP&A and Finance BP platform, the primary pitfall is being "broad but shallow." We must first establish the core Ideal Customer Profile (ICP). Which segment and entry wedge do you intend to prioritize?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Focus on Mid-Market & Scale-up enterprises (100–1,000 employees): Primary pain points include fast business velocity, disconnect between business and financial ledgers, and days spent by Finance BPs extracting cross-departmental data to build variance decks. Integrates with standard SaaS/ERP systems (NetSuite, Salesforce, Feishu/DingTalk).
+- **Option 2**: Focus on cross-border ventures and early-stage startups (SMBs < 100 employees): Primary pain points include cash runway monitoring, automated categorization of bank/payment streams, and zero-touch reporting, emphasizing plug-and-play integrations (QuickBooks, Xero, Stripe, Shopify).
+- **Option 3**: Focus on diversified enterprise groups (1,000+ employees): Primary pain points revolve around complex multi-entity consolidation, organizational overhead allocation, rigid budget approval chains, and governance, positioned to replace or augment Anaplan, Hyperion, or SAP.
+- **Option 4**: Focus on Fractional CFOs and accounting agencies: Emphasizes multi-client tenant management, enabling external advisors to rapidly onboard client data and produce commercial insight reports.
+
+#### User Response
+> **`1+2`**  
+> *(Decision: Target both Mid-Market scale-ups and high-growth SMBs in parallel.)*
+
+---
+
+### Round 2: Core Interaction Paradigm & Financial Modeling Experience (The Spreadsheet Dilemma)
+
+#### Question
+Given that you are serving both SMBs (seeking simplicity) and Mid-Market teams (with entrenched finance habits), how should FinMesh address the spreadsheet dependency trap while delivering a modern modeling experience?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Web-Native Modern Multi-Dimensional Workspace + Bidirectional Excel/Sheets Sync (benchmarked against Pigment/Mosaic): Primary web platform manages RBAC, multi-dimensional modeling, AI variance attribution, and executive dashboards; lightweight Excel/Sheets add-ins and export capabilities ensure zero migration friction for core financial workflows.
+- **Option 2**: Pure Web Agile Canvas Experience (benchmarked against Runway.com / Causal): Reinvents financial modeling away from cold tabular grids into visual logic DAG nodes, interactive scenario sliders, and real-time sensitivity charts.
+- **Option 3**: Excel-First Companion Mode (benchmarked against Datarails / Cube): Frontend relies 100% on existing user spreadsheets; the platform acts as a cloud-based data mesh, unified semantic store, and AI copilot.
+- **Option 4**: AI Agent & Decision Memo-Driven (benchmarked against AI Finance BP assistants): De-emphasizes manual grid modeling in favor of natural language querying, automated root-cause diagnosis, and automated month-end variance decks.
+
+#### User Response
+> **`Mixed 1, 2 and 4`**  
+> *(Decision: Blend multi-dimensional reporting grids with Excel export/add-ins [1], visual causal simulation canvases [2], and automated narrative memos with audit drill-down [4]; exclude pure companion mode [3].)*
+
+---
+
+### Round 3: Underlying Data & Computation Engine Architecture
+
+#### Question
+To support live canvas simulations, bidirectional spreadsheet sync, and automated root-cause variance attribution, what core data and computation architecture should power the underlying mesh?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Causal Metric DAG & Financial Semantic Layer: Models financial and operational metrics (ARR, CAC, Gross Margin, Net Burn) as a Directed Acyclic Graph backed by granular transaction streams. Naturally powers visual DAG simulations and deterministic waterfall attributions without AI hallucination.
+- **Option 2**: Traditional Multi-Dimensional OLAP Cube (benchmarked against Pigment / Anaplan): Strict dimensions (Time, Entity, Department, Version, Product) with fast slice-and-dice rollups, suited for rigid corporate financial structures.
+- **Option 3**: Modern Columnar Analytical SQL Engine (based on DuckDB / MotherDuck / dbt): Lands financial data into flat fact tables and wide schemas, executing transformations and calculations via SQL. Low development overhead and high throughput on transaction streams.
+- **Option 4**: Dynamic Code Interpreter Pattern (Python / Code Interpreter): Generates and executes ad-hoc Python/SQL scripts dynamically on user prompts, offering extreme flexibility but posing determinism challenges for auditability.
+
+#### User Response
+> **`Modern Columnar Analytical SQL Engine (based on DuckDB / MotherDuck / dbt): Lands financial data into flat fact tables and wide schemas, executing transformations and calculations via SQL. Low development overhead and high throughput on transaction streams.`**  
+> *(Decision: Adopt DuckDB columnar SQL engine and fact schemas as the core analytical compute layer.)*
+
+---
+
+### Round 4: Data Ingestion Strategy & Ecosystem Openness (Ingestion & MCP)
+
+#### Question
+With DuckDB/SQL powering the engine, onboarding and data normalization determine time-to-value. What is FinMesh's strategy for data ingestion and integration?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Hybrid Ingestion Mode: Direct APIs for core platforms (QuickBooks, Xero, NetSuite, Stripe) + Smart Spreadsheet Parsing (drag-and-drop Excel/CSV with automated account mapping to fact tables) for 10-minute time-to-value.
+- **Option 2**: Warehouse-Native / Zero-ETL Mode: Mounts client data warehouses directly (Snowflake, BigQuery, PostgreSQL, Databricks), querying existing dbt wide tables via DuckDB without duplicating storage.
+- **Option 3**: File-First & Template Priority: Prioritizes universal CSV/Excel templates, schema validation, and automated cleaning over building dozens of external API connectors.
+- **Option 4**: Fully-Managed Third-Party Integration Rails (Merge.dev / Airbyte / Fivetran): Outsources connector engineering through unified accounting and HRIS APIs.
+
+#### User Response
+> **`1+2 and expose as MCP / Plugins for external AI Agents to invoke`**  
+> *(Decision: Support hybrid ingestion [1], warehouse mounting [2], and expose query/simulation tools as standard MCP servers for external agents.)*
+
+---
+
+### Round 5: Built-in AI Agent Flagship Deliverables & Value Propositions
+
+#### Question
+Given that FinMesh operates both as an AI-powered SaaS platform and an open Financial MCP Server, what are the flagship value propositions and deliverables for the built-in AI Agent?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Autonomous Finance BP Agent with Closed-Loop Diagnosis & Memos: Focuses on month-end close. Automatically computes Actual vs Budget variances across price, volume, and mix, producing executive memos with interactive waterfall bridges and proactive anomaly alerts.
+- **Option 2**: Conversational Financial Copilot (Text-to-SQL + Audited Charts): Conversational advisor on Web, Slack, or Lark answering ad-hoc metric questions via precise DuckDB SQL generation and data lineage citations.
+- **Option 3**: Predictive What-If Simulation Engine: Generates multi-scenario forecasting (Base/Bull/Bear) with automated sensitivity analysis and cash runway stress testing.
+- **Option 4**: Cross-Departmental Follow-Up Agent: Automates variance inquiry workflows, polling department owners (Engineering, Marketing) to gather explanations for budget overruns.
+
+#### User Response
+> **`1+2+3`**  
+> *(Decision: Core capabilities encompass automated variance memos [1], conversational Text-to-SQL querying [2], and dynamic What-If scenario simulations [3]; exclude automated inquiry polling bot [4].)*
+
+---
+
+### Round 6: Financial Determinism & Zero-Hallucination Audit Trail
+
+#### Question
+In corporate finance, numerical precision is non-negotiable (CFOs cannot tolerate a single dollar of discrepancy). How should the trust and auditability architecture be designed across DuckDB and LLM interactions?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Semantic Metric Layer + Deterministic SQL + Full Audit Trail: Prohibits direct LLM mental arithmetic. Metrics are declaratively standardized (dbt/Cube style); LLMs handle semantic intent-to-SQL routing. All numbers in memos are clickable links resolving to underlying DuckDB SQL queries and source ledger rows.
+- **Option 2**: Parametric Deterministic Template Library: Routes user intent into pre-compiled financial calculation routines, completely eliminating syntax and calculation drift.
+- **Option 3**: Dual-Agent Adversarial Double-Check: One agent generates logic while a secondary "Auditor Agent" verifies trial balances (`Debits == Credits`) before releasing results.
+- **Option 4**: Human-in-the-Loop Verification: Displays AI-generated SQL and attribution models as visual flowcharts requiring manual sign-off by financial analysts before finalization.
+
+#### User Response
+> **`Option 1 (Recommended)`**  
+> *(Decision: Establish a declarative semantic metric layer, forbid LLM mental math, and guarantee 100% drill-down traceability to source transactions.)*
+
+---
+
+### Round 7: Tech Stack Selection & Golang Feasibility Analysis
+
+#### User Question
+> **`Is Golang feasible for both the backend and the AI orchestrator?`**
+
+#### Architectural Assessment & Trade-Offs
+Golang is fully feasible for enterprise SaaS and AI orchestration, providing superior concurrency, minimal memory footprint, and straightforward single-binary deployments. Go offers official `go-duckdb` CGO bindings and standard `mcp-go` protocol libraries. Numerical calculations execute in DuckDB while LLM inference routes via cloud model gateways. The only trade-off is integrating traditional Python scientific packages (such as Prophet for time-series forecasting).
+
+- **Option 1 (Recommended)**: Pure Go Architecture: Go manages SaaS APIs, DuckDB sessions, semantic layer resolution, MCP protocol endpoints, and LLM tool calling. Simulations rely on explicit financial formulas and causal graphs.
+- **Option 2**: Go Core System + Lightweight Python Algorithm Sidecar (Hybrid Stack): Go handles 90% of SaaS services, DuckDB orchestration, and MCP protocol traffic; a lightweight Python microservice serves as a pluggable sidecar for complex time-series models (Prophet, StatsForecast) or specialized document OCR.
+- **Option 3**: Pure Go Native AI Ecosystem: Uses LangChainGo, `mcp-go`, and custom state machines leveraging goroutines and channels for high-throughput multi-agent execution.
+
+#### User Response
+> **`Option 2: Go Core System + Lightweight Python Algorithm Sidecar (Hybrid Stack): Go handles 90% of SaaS services, DuckDB orchestration, and MCP protocol traffic; a lightweight Python microservice serves as a pluggable sidecar for complex time-series models (Prophet, StatsForecast) or specialized document OCR.`**  
+> *(Decision: Go powers core SaaS, DuckDB analytics, and MCP servers; Python sidecars handle specialized statistical forecasting algorithms.)*
+
+---
+
+### Round 8: Multi-Tenant Data Isolation & Security Compliance
+
+#### Question
+Financial ledgers are highly sensitive enterprise assets. In designing multi-tenancy across DuckDB and Go—especially when LLMs execute dynamic SQL—what isolation strategy should be enforced?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Tenant-Isolated Encrypted DuckDB Files + Shared Metadata PostgreSQL: PostgreSQL manages organizations, users, and metric metadata; each enterprise tenant's financial transactions are stored in an independent, encrypted DuckDB file (on S3/mounted volumes). Eliminates cross-tenant SQL leakage caused by missing `tenant_id` clauses in LLM-generated SQL.
+- **Option 2**: Fully Shared Multi-Tenant Data Warehouse (Shared DuckDB / ClickHouse + Row Level Security): All tenants share single fact tables, relying strictly on SQL parsing filters and RLS policies to inject `tenant_id`.
+- **Option 3**: Bring Your Own Database (BYOD / Zero Retention): For security-sensitive mid-market clients, financial data remains in customer-owned warehouses (Snowflake, BigQuery, RDS); SaaS stores only metadata and executes ephemeral in-memory queries.
+- **Option 4**: Hybrid Dual-Track: Tenant-isolated DuckDB files for standard tiers, with BYOD data warehouse mounting for enterprise tiers.
+
+#### User Response
+> **`Option 1 (Recommended)`**  
+> *(Decision: Physical file-level tenant isolation with per-tenant encrypted DuckDB databases; metadata managed in PostgreSQL.)*
+
+---
+
+### Round 9: Semantic Metric Layer & Data Modeling (Star Schema vs. dbt)
+
+#### Question
+With tenant-isolated DuckDB storage, the primary asset is the semantic metric layer. To serve both SMB plug-and-play onboarding and Mid-Market customization, what data modeling paradigm should be adopted?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Standard Financial Star Schema + Declarative Metric Layer: Pre-built standard fact tables (`fact_gl`, `fact_revenue`, `fact_headcount`, `fact_drivers`) coupled with declarative YAML/JSON metric specifications (ARR, Gross Margin, CAC, Net Burn). Enables rapid onboarding while permitting custom metric extensions.
+- **Option 2**: Custom SQL Transformation Pipeline (dbt-style): Avoids pre-defined table structures, allowing analysts and engineers to write SQL/dbt models to transform raw source tables into custom wide reporting models.
+- **Option 3**: Schema-less Dynamic Event Mesh & AI Matching: Stores all data into schemaless event stores, using AI to infer field semantics dynamically during query execution.
+
+#### User Response
+> **`Provide 1 & 2`**  
+> *(Decision: Bundle pre-built standard fact schemas and YAML metrics for instant onboarding [1], alongside open dbt-style SQL transformation pipelines for customization [2].)*
+
+---
+
+### Round 10: Canvas Interaction & What-If Live Simulation
+
+#### Question
+In implementing the interactive scenario simulation canvas (benchmarked against Runway and Causal), how should the visual graph interact with underlying DuckDB historical actuals and AI?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Live Historical Binding + Dynamic Scenario Sliders + AI-Assisted Graph Generation: Canvas nodes bind directly to DuckDB historical actuals (e.g., past 12 months of CAC, labor efficiency). Future forecast nodes expose dynamic sliders and formula inputs. Dragging sliders recomputes the P&L and runway in under 100ms with Base/Bull/Bear side-by-side comparisons, with AI available to generate graph structures from prompts.
+- **Option 2**: Isolated Scenario Scratchpad: Canvas acts as a disconnected drafting board, unbound from core database records, supporting manual inputs and formulas until explicitly exported as a new budget version.
+- **Option 3**: Sheet-to-Canvas Read-Only Mirror: Multi-dimensional tables remain the sole authoring surface; canvas serves strictly as a read-only dependency flowchart without interactive slider manipulation.
+
+#### User Response
+> **`Option 1 (Recommended)`**  
+> *(Decision: Live-bind historical actuals to graph nodes, enable dynamic future-period sliders with sub-100ms recomputation, and provide natural language graph generation.)*
+
+---
+
+### Round 11: Financial MCP Server Protocol Modes
+
+#### Question
+Regarding positioning FinMesh as an open Financial MCP Server that external AI agents can invoke for metrics, variance decomposition, and scenario simulation, what protocol delivery modes should be supported?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Dual-Mode MCP Architecture (Remote SSE/HTTP + Local Stdio Bridge): Standard cloud MCP endpoints for enterprise workflows and automated agents, paired with a local stdio bridge allowing individual CFOs and analysts to connect Claude Desktop, Cursor, or ChatGPT directly to FinMesh capabilities.
+- **Option 2**: Pure Cloud API & Webhook Gateway (REST/GraphQL + Remote MCP): Focused exclusively on enterprise B2B integrations via centralized cloud gateways.
+- **Option 3**: Local-First CLI Companion (Local DuckDB + Stdio MCP): Tailored for local analysts, running Stdio MCP directly against local DuckDB files with zero data leaving the machine.
+
+#### User Response
+> **`Option 1 (Recommended)`**  
+> *(Decision: Deploy dual-mode MCP supporting remote SSE/HTTP and local Stdio bridges.)*
+
+---
+
+### Round 12: Initial MVP Scope & Engineering Priorities (Milestone 1)
+
+#### Question
+To establish end-to-end viability efficiently from 0 to 1, what delivery cadence and scope slice should be targeted for Milestone 1 (MVP)?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: End-to-End Vertical Slice MVP: Covers drag-and-drop spreadsheet ingestion -> Go + DuckDB tenant fact storage -> Pre-configured core SaaS/P&L metrics -> Next.js three core interfaces (Multi-dim P&L Grid, React Flow Driver Canvas, Audit-Drill Variance Memo) -> Fully functional Go native MCP Server.
+- **Option 2**: Headless Engine & MCP Server First: Ships Go + DuckDB storage, metric transformations, and MCP tools first, verifying financial calculations in Claude Desktop/Cursor before investing in frontend interfaces.
+- **Option 3**: Frontend Canvas & Grid Prototype First: Focuses on Next.js, React Flow, and modern grid UI with mock data for investor and customer demos before implementing backend data pipelines.
+
+#### User Response
+> **`Option 1 (Recommended)`**  
+> *(Decision: Deliver an end-to-end vertical slice MVP, establishing the full loop from spreadsheet ingestion and compute grids to simulation canvas, audited memos, and native MCP services.)*
+
+---
+
+### Round 13: LLM Gateway & Multi-Model Compatibility Strategy
+
+#### Question
+For the AI inference layer (responsible for semantic query parsing, DuckDB SQL generation, and Finance BP executive memo drafting), what model selection and provider strategy should be adopted?
+
+#### Candidate Options & Trade-Offs
+- **Option 1 (Recommended)**: Model-Neutral Gateway (supporting OpenAI-compatible API, Anthropic-compatible API, Response API, and local/cloud self-hosted models): Implements protocol-level abstraction without vendor lock-in. Supports commercial API providers and self-hosted model runners (such as vLLM and Ollama), allowing enterprise tenants to bring custom API keys or run on private infrastructure.
+- **Option 2**: Proprietary Vendor Lock-in: Deeply binds to a specific model provider's proprietary SDK, risking platform lock-in and complicating on-premises enterprise deployments.
+- **Option 3**: Local Self-Hosted Only: Strictly isolates external cloud APIs, requiring all tenants to maintain local model instances.
+
+#### User Response
+> **`Option 1 (Recommended)`**  
+> *(Decision: Adopt a protocol-abstracted, model-neutral gateway supporting OpenAI-compatible API, Anthropic-compatible API, Response API, and local/cloud self-hosted models.)*
+

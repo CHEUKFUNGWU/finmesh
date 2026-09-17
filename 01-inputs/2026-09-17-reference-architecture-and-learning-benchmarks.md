@@ -1,8 +1,16 @@
-# 参考资源分析与架构借鉴规划
+# 参考资源分析与架构借鉴规划 / Reference Architecture & Benchmarks
+
+[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文版本
 
 - **登记日期**：2026-09-17
-- **关联来源**：`SRC-0002` ~ `SRC-0012`
+- **关联来源**：`SRC-0002` ~ `SRC-0016`
 - **目标**：梳理团队既有业财资产、Go 基础设施、MCP 协议、安全 Agent 运行时与前端设计规范，确立技术落地标准。
+
 
 ---
 
@@ -125,3 +133,135 @@
     - 构建“原始凭证 -> 业财事实表 -> 语义计算指标 -> 经营报告”的拓扑图，为报告中的数字穿透提供确定性来源。
   - **数据测试机制 (Testing)**：
     - 在数据入库时执行试算平衡测试（`Debits == Credits`），测试未通过前数据不进入报表发布状态。
+
+---
+
+<a name="english"></a>
+## English Version
+
+- **Date**: 2026-09-17
+- **Associated Sources**: `SRC-0002` ~ `SRC-0016`
+- **Objective**: Review existing domain assets, Go infrastructure, MCP protocol, secure agent runtimes, and frontend design baselines to establish implementation standards.
+
+---
+
+### 1. Business & FP&A Domain Assets
+
+#### 1.1 `CHEUKFUNGWU/retail_performance_workstation`
+- **Project Positioning**: Retail operations and corporate financial analytics workstation.
+- **Inherited Assets**:
+  - `docs/PRD_财务BP与FPA岗位支撑补齐方案.md`: Defines Finance BP and FP&A responsibilities, key metrics (PVM variance, HC efficiency, unit economics), and capability gaps.
+  - `docs/IFRS16_计量方法与准则映射白皮书.md`: Accounting standard mapping logic and lease capitalization verification.
+  - `docs/Agent_Tool_包装规范.md`: Rules requiring narrow tool interfaces, explicit tenant context passing, and security isolation.
+  - `docs/specs/fpna-chart-of-accounts-flexibility-f1.md`: Hierarchical Chart of Accounts mapping and dynamic aggregation.
+- **FinMesh Adoption Strategy**:
+  - **Tool Interface Design**: FinMesh MCP tools follow narrow-interface principles, exposing business semantic parameters only and injecting tenant context at the framework layer.
+  - **Dynamic COA Mapping**: Implements hierarchical account tree mapping to unify disparate ERP ledger accounts into canonical schemas.
+  - **Variance Attribution**: Reuses Price-Volume-Mix (PVM) algorithms for revenue and gross profit variance decomposition.
+
+#### 1.2 `CHEUKFUNGWU/aegisplan`
+- **Project Positioning**: Planning analysis engine with financial and risk management domain models.
+- **Inherited Assets**:
+  - `财务与风控岗位SaaS需求分析.pdf`: Analysis of financial and risk management workflows and cross-system data integration.
+  - **Go Backend Architecture**: Incorporates `grpc-gateway`, `pgx/v5` (PostgreSQL pooling), and `nats.go` (message bus).
+- **FinMesh Adoption Strategy**:
+  - Inherits PostgreSQL data access patterns based on `pgx/v5`.
+  - Reuses domain abstractions for organizational hierarchy, RBAC, and multi-entity models.
+
+---
+
+### 2. Go Enterprise Backend & Infrastructure
+
+#### 2.1 `go-admin-team/go-admin`
+- **Project Positioning**: Decoupled RBAC admin framework based on Gin, GORM, and Casbin.
+- **FinMesh Adoption Strategy**:
+  - **Layered Architecture**: Adopts `apis/`, `models/`, `service/`, `middleware/` directory conventions.
+  - **RBAC Engine**: Utilizes Casbin for granular tenant-level roles (CFO, Finance BP, Department Head, Auditor) across data and menu permissions.
+  - **Infrastructure Components**: JWT authentication, organization trees, API rate limiting, and audit logging.
+
+#### 2.2 `youngyangyang04/KamaCache-Go`
+- **Project Positioning**: Distributed Go in-memory cache featuring consistent hashing, LRU eviction, and concurrency safety.
+- **FinMesh Adoption Strategy**:
+  - **In-Memory Hot Caching**: Embeds thread-safe local caches in the Go core to cache metric definitions, simulation states, and tenant metadata.
+  - Eliminates redundant I/O bottlenecks to DuckDB and PostgreSQL.
+
+---
+
+### 3. AI Agent Runtime & Model Context Protocol (MCP)
+
+#### 3.1 `modelcontextprotocol/go-sdk` & `mark3labs/mcp-go`
+- **Project Positioning**:
+  - `modelcontextprotocol/go-sdk`: Anthropic official Go SDK for MCP.
+  - `mark3labs/mcp-go`: Active community Go MCP framework supporting Stdio and Remote SSE/HTTP transports.
+- **FinMesh Adoption Strategy**:
+  - Standardize on `mark3labs/mcp-go` to construct FinMesh native Financial MCP Server.
+  - Formalize Tools (metric queries and variance math), Resources (read-only schemas), and Prompts (analytical templates).
+
+#### 3.2 `nanocoai/nanoclaw`
+- **Project Positioning**: Containerized AI Agent runtime with Agent Vault credential security.
+- **FinMesh Adoption Strategy**:
+  - **Credential Vault**: Isolates external integration credentials, preventing third-party API keys from entering LLM context.
+  - **Notification Integrations**: Implements event-driven alerting channels to enterprise messaging tools (Slack/Lark).
+
+#### 3.3 `earendil-works/pi`
+- **Project Positioning**: Modular terminal AI agent execution loop.
+- **FinMesh Adoption Strategy**:
+  - **Agent State Loop**: Reuses structured tool invocation loops.
+  - **Diff Loop**: Inspects and verifies metric divergences across scenario versions.
+
+---
+
+### 4. Modern Frontend & Visual System
+
+#### 4.1 `ui.shadcn.com`
+- **Project Positioning**: Component library built on Radix UI and Tailwind CSS with direct source ownership.
+- **FinMesh Adoption Strategy**:
+  - Baseline UI components built with shadcn/ui (Dialog, Dropdown, Table, Sheet, Tabs, Command, Popover).
+  - Enforces dark mode first with full code-level style control.
+
+#### 4.2 `vercel.com/geist/introduction`
+- **Project Positioning**: Vercel official design system and typography standards.
+- **FinMesh Adoption Strategy**:
+  - **High-Density Typography**: Neutral cool gray backgrounds, 1px subtle borders, strict font hierarchies.
+  - **Tabular Figures (`font-mono`)**: All numbers in financial grids and waterfall charts use monospaced figures to ensure decimal point alignment.
+  - **Visual Restraint**: Eliminates non-essential gradients and excessive decorative elements.
+
+#### 4.3 `ui.spectrumhq.in`
+- **Project Positioning**: Motion and micro-interaction library built on shadcn/ui and Framer Motion.
+- **FinMesh Adoption Strategy**:
+  - Applies smooth transitions to React Flow edge renders, metric counters, and waterfall chart animations.
+
+---
+
+### 5. Analytical Engine & Data Transformation Lineage
+
+#### 5.1 `DuckDB Go Client` & `DuckDB Core Engine`
+- **Reference Links**:
+  - [DuckDB Go Client Overview](https://duckdb.org/docs/current/clients/go/overview)
+  - [DuckDB Official Documentation](https://duckdb.org/docs/current/)
+- **Technical Positioning**:
+  - In-process embedded columnar OLAP engine optimized for vectorized analytical queries.
+- **FinMesh Adoption Strategy**:
+  - **Appender Batch Ingestion**: Uses Go client `Appender` interface to bypass SQL parsing overhead for high-speed file ingestion.
+  - **Dynamic Tenant File Mounting**: Executes `ATTACH 'tenants/{tenant_id}.duckdb' AS tenant_db` for physical file-level tenant isolation.
+  - **Financial SQL Dialect**:
+    - `PIVOT / UNPIVOT`: Transforms multi-dimensional P&L schedules between vertical ledger rows and horizontal monthly columns.
+    - Window Functions: Calculates cumulative net burn, runway, and month-over-month variance via `SUM() OVER`, `LAG`, and `LEAD`.
+    - Direct Parquet Querying: Queries external Parquet archives without data replication.
+
+#### 5.2 `dbt-core` & `dbt-docs Lineage`
+- **Reference Links**:
+  - [dbt-labs/dbt GitHub Repository](https://github.com/dbt-labs/dbt)
+  - [dbt Docs v2 & Lineage Graph Documentation](https://docs.getdbt.com/docs/build/view-documentation?version=2#dbt-docs-v2)
+- **Technical Positioning**:
+  - Declarative SQL transformation, dependency DAG orchestration, data quality testing, and lineage visualization.
+- **FinMesh Adoption Strategy**:
+  - **Layered Modeling Architecture**:
+    1. `Staging Layer`: Normalizes raw schemas ingested from third-party APIs and spreadsheets.
+    2. `Intermediate Layer`: Handles cross-system COA mapping and debit/credit normalizations.
+    3. `Marts Layer`: Outputs `fact_gl`, `fact_revenue`, and `fact_headcount` tables.
+  - **Lineage DAG Resolution**:
+    - Constructs topological graphs from source documents to fact tables, semantic metrics, and reports, guaranteeing audit traceability.
+  - **Data Testing Framework**:
+    - Enforces trial balance reconciliation (`Debits == Credits`) upon ingestion; reports cannot be published if tests fail.
+

@@ -1,8 +1,16 @@
-# Excel、PPT 与 Canvas 画布库选型与使用边界调研报告
+# Excel、PPT 与 Canvas 画布库选型与使用边界调研报告 / Excel, PPT & Canvas Libraries Research
+
+[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文版本
 
 - **来源编号**：`SRC-0021`
 - **登记日期**：2026-09-17
 - **主题**：面向 FinMesh 的 Excel 数据导入导出、PPT 报告生成与 Canvas 画布推演技术选型
+
 
 ---
 
@@ -79,3 +87,89 @@ flowchart LR
    - 内部交互支持 `Marp` 结构化格式：大模型输出直接渲染为网页端全屏演示。
 3. **Canvas 方案**：
    - 核心采用 `@xyflow/react`：建立节点式驱动树，在节点内直接挂载推演滑块与 ECharts 微型图表。
+
+---
+
+<a name="english"></a>
+## English Version
+
+- **Source ID**: `SRC-0021`
+- **Date**: 2026-09-17
+- **Subject**: Evaluation of Excel data I/O, PPT report generation, and Canvas simulation libraries for FinMesh
+
+---
+
+### 1. Excel Domain: Backend Streaming I/O and Frontend Grids
+
+Finance workflows depend heavily on spreadsheets. FinMesh must support server-side ingestion, browser-side multi-dimensional export, and desktop add-in interfaces:
+
+| Project | Stack / License | License Characteristics & Functional Capabilities | Specific Application Scenario in FinMesh |
+| :--- | :--- | :--- | :--- |
+| `excelize`<br/>(`qax-os/excelize`) | Go<br/>BSD-3-Clause | 1. Permissive open source, embeddable in commercial closed-source SaaS.<br/>2. Stream Reader/Writer support with low memory footprint across hundreds of thousands of GL rows.<br/>3. Parses cell styles, formulas, charts, and pivot metadata. | **Go Backend File Parser**: Stream-parses user-uploaded GL ledgers and budget templates into DuckDB fact tables. |
+| `Univer`<br/>(`dream-num/univer`) | TypeScript<br/>Apache 2.0 | 1. Modular collaborative office framework covering sheets, docs, and slides.<br/>2. Canvas-based rendering with collaborative editing and formula calculation engines. | **Web Complex Spreadsheet Alternative**: For scenarios requiring advanced online formula modeling and Excel-like desktop mechanics. |
+| `exceljs` | TypeScript / Node<br/>MIT | 1. Pure frontend/Node spreadsheet generation library without external runtime dependencies.<br/>2. Supports cell styles, data validation, and frozen panes. | **Client-Side Browser Export**: Generates styled `.xlsx` workbooks directly in the browser, minimizing server roundtrips. |
+| `Office.js` | Microsoft Official SDK | Official Microsoft Office Web Add-ins communication protocol. | **Desktop Add-in Interface**: Powers Excel 365 desktop companion add-in for bidirectional synchronization between workbooks and cloud models. |
+
+---
+
+### 2. PPT Domain: Executive Presentation & Management Memo Generation
+
+Finance analysts produce monthly operational presentations for management. The platform dynamically binds structured metrics and narrative attributions into editable presentations:
+
+| Project | Stack / License | License Characteristics & Functional Capabilities | Specific Application Scenario in FinMesh |
+| :--- | :--- | :--- | :--- |
+| `PptxGenJS`<br/>(`gitbrent/PptxGenJS`) | TypeScript / JS<br/>MIT | 1. Pure browser-side slide generation library without server rendering dependencies.<br/>2. Produces native, editable `.pptx` decks with master slides, shapes, native charts, and tables. | **Frontend One-Click PPT Export**: Packages AI variance narratives and waterfall charts into `.pptx` files for analyst fine-tuning. |
+| `python-pptx` | Python<br/>MIT | 1. Mature Python PPT automation library.<br/>2. Populates corporate brand templates by injecting charts and tables into designated slide placeholders. | **Python Algorithm Sidecar Batch Decking**: Generates multi-division monthly operational packs in asynchronous background jobs. |
+| `Marp`<br/>(`marp-team/marp`) | Markdown Ecosystem<br/>MIT | 1. Markdown- and YAML-driven slide rendering engine.<br/>2. Exports to HTML web presentations, PDF, and PPTX. | **AI Structured Output Bridge**: Direct target format for LLM report generation, rendered as interactive fullscreen slides in Web UI. |
+| `reveal.js` | JavaScript<br/>MIT | HTML presentation framework supporting interactive embedded React charts. | **Web Immersive Presentation Mode**: Fullscreen browser deck supporting live click-through to underlying transaction drawers. |
+
+---
+
+### 3. Canvas Domain: Causal Sandbox Simulation & Process Modeling
+
+FinMesh delivers graphical scenario modeling, transforming static tables into intuitive causal driver graphs:
+
+| Project | Stack / License | License Characteristics & Functional Capabilities | Specific Application Scenario in FinMesh |
+| :--- | :--- | :--- | :--- |
+| `@xyflow/react`<br/>(React Flow) | React / TypeScript<br/>MIT | 1. Node-based UI and DAG engineering library.<br/>2. Supports custom nodes embedding interactive controls (sliders, inputs, sparklines) and custom edges.<br/>3. Native viewport transforms and drag-and-drop snapping. | **[Selected Core] FinMesh What-If Driver Canvas**: Renders ARR, CAC, and Runway causal trees with live simulation sliders. |
+| `tldraw` | React / TypeScript<br/>Apache 2.0 (SDK) | 1. Infinite canvas whiteboard library.<br/>2. Supports freehand drawing, sticky notes, and multiplayer cursors. | **Strategic Scratchpad Alternative**: Non-structured architectural sketches and collaborative workflow discussions. |
+| `Konva` / `react-konva` | JavaScript / React<br/>MIT | 1. High-performance HTML5 2D canvas library.<br/>2. Complete scenegraph hierarchy (Stage, Layer, Group, Shape) with event delegation. | **High-Density Render Alternative**: Bypasses DOM performance boundaries when canvas driver graphs exceed thousands of nodes. |
+| `Fabric.js` | JavaScript<br/>MIT | HTML5 Canvas object model with format serialization and transformations. | **Dashboard Graphic Export**: Synthesizes high-resolution PVM variance dashboards into image files for offline sharing. |
+
+---
+
+### 4. FinMesh Core Technology Architecture
+
+```mermaid
+flowchart LR
+    subgraph ExcelStack ["Excel Dimension"]
+        GoExcelize["Go excelize (Streaming Ingestion)"]
+        FEExcelJS["Frontend exceljs (Direct P&L Export)"]
+        UniverOption["Alternative: Univer (Advanced Web Modeling)"]
+    end
+
+    subgraph PPTStack ["PPT Dimension"]
+        AgentMarp["Marp Markdown (Structured Report Draft)"]
+        PptxGenJS["PptxGenJS (Direct Editable PPTX)"]
+        PyPptx["Python python-pptx (Async Batch Reports)"]
+    end
+
+    subgraph CanvasStack ["Canvas Dimension"]
+        ReactFlow["@xyflow/react (Causal Driver Canvas)"]
+        ECharts["Apache ECharts (Financial Charts)"]
+    end
+
+    ExcelStack --> FinMeshCore["FinMesh System"]
+    PPTStack --> FinMeshCore
+    CanvasStack --> FinMeshCore
+```
+
+1. **Excel Architecture**:
+   - Backend: `excelize` for high-throughput streaming ingestion into DuckDB.
+   - Frontend: `exceljs` for direct in-browser formatted `.xlsx` generation.
+2. **PPT Architecture**:
+   - Frontend: `PptxGenJS` to compile charts and memos into editable native `.pptx` slides.
+   - Internal Rendering: `Marp` structured Markdown format for live web-native deck reviews.
+3. **Canvas Architecture**:
+   - Core: `@xyflow/react` for the interactive driver tree, embedding dynamic simulation sliders and ECharts sparklines inside custom nodes.
+

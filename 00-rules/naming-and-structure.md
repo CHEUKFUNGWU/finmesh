@@ -1,10 +1,13 @@
-# 目录职责与命名约定
+# 目录职责与命名约定 / Directory Responsibilities & Naming Conventions
 
-本文件定义 FinMesh 产品工作空间内各目录的唯一职责边界与统一命名规范。
+[中文](#中文) | [English](#english)
 
 ---
 
-## 1. 目录职责表
+<a name="中文"></a>
+## 中文规则
+
+### 1. 目录职责表
 
 编号前缀的作用：在文件管理器和代码编辑器中按名称排序时，即为工作流的自然推进顺序。
 
@@ -21,9 +24,7 @@
 | **`90-assets/`** | 共享资产 | 演示文稿、高保真原型截图、架构高清矢量图、通用附件 | 文本格式的需求或规则说明 |
 | **`99-archive/`** | 历史归档 | 已废弃、已关闭或被完全重写的过期方案与材料 | 处于活跃状态的规范与需求 |
 
----
-
-## 2. 命名约定
+### 2. 命名约定
 
 统一的命名规范是自动化检索与团队/AI 协同的基础：
 
@@ -39,3 +40,43 @@
 4. **版本目录（位于 `06-versions/` 下）**：
    - 格式：`v<主版本>.<次版本>`
    - 示例：`v0.1`、`v1.0`。
+
+---
+
+<a name="english"></a>
+## English Rules
+
+### 1. Directory Responsibilities Matrix
+
+Role of numbered prefixes: Sorting files alphabetically in file managers and code editors naturally reflects the sequential execution order of the product workflow.
+
+| Directory | Responsibility | Allowed Contents | Prohibited Contents |
+| :--- | :--- | :--- | :--- |
+| **`00-rules/`** | Rules & Templates | Workflow standards, naming rules, templates, checklists | Specific business requirements, meeting minutes |
+| **`01-inputs/`** | Raw Inputs | Customer interview notes, legacy docs, competitor references, screenshots | Unregistered ad-hoc documents, rewritten formal proposals |
+| **`02-product/`** | Stable Product Facts | Business glossary, architecture whitepaper, baseline capabilities, constraints | Unverified ad-hoc hypotheses, single-release requirement details |
+| **`03-planning/`** | Cross-Requirement Planning | Problem space, module maps, architecture & product decision logs | Detailed PRDs / prototypes for a single requirement |
+| **`04-requirement-pool/`** | Requirement Pool | Candidate requirement register, status tracking, priority assessment | Full analysis workflows and granular design specs |
+| **`05-requirements/`** | Requirement Packages | Dedicated subdirectories per requirement (PRD, interactive sketches, test cases) | Cross-cutting global plans, unprocessed raw inputs |
+| **`06-versions/`** | Version Management | Target release scope commitments, release plans, milestone tracking | Detailed requirement designs (must link to `05-requirements/`) |
+| **`07-reviews/`** | Reviews & Acceptance | Requirement review notes, production acceptance checklists, postmortems | Ongoing work-in-progress draft proposals |
+| **`90-assets/`** | Shared Assets | Slide decks, high-fidelity mockups, vector diagrams, shared attachments | Text-based requirements or workflow rule descriptions |
+| **`99-archive/`** | Historical Archive | Deprecated, closed, or completely superseded legacy documents | Active standards, living requirements, and active plans |
+
+### 2. Naming Conventions
+
+Standardized naming is essential for automated indexing, tooling, and human/AI collaboration:
+
+1. **Markdown Files**:
+   - Must use lowercase English letters connected with hyphens (`kebab-case`).
+   - Examples: `problem-space.md`, `decision-log.md`, `semantic-metric-layer.md`.
+2. **Date-stamped Materials (Inputs, Minutes, Reviews)**:
+   - Format: `YYYY-MM-DD-<english-topic-in-kebab-case>`.
+   - Examples: `2026-09-17-fpna-cfo-interview.md`, `2026-09-18-architecture-review.md`.
+3. **Requirement Package Directories (under `05-requirements/`)**:
+   - Format: `req-<4-digit-incremental-number>-<short-name>`.
+   - Examples: `req-0001-smart-csv-ingestion`, `req-0002-react-flow-whatif-canvas`.
+4. **Release Version Directories (under `06-versions/`)**:
+   - Format: `v<major>.<minor>`.
+   - Examples: `v0.1`, `v1.0`.
+

@@ -1,10 +1,13 @@
-# 需求状态与阶段门槛 (Status & Gates)
+# 需求状态与阶段门槛 / Status & Quality Gates
 
-本文件定义 FinMesh 需求的标准生命周期状态流转路径与进入下一阶段的硬性门槛（Quality Gates）。
+[中文](#中文) | [English](#english)
 
 ---
 
-## 1. 状态流转图
+<a name="中文"></a>
+## 中文规则
+
+### 1. 状态流转图
 
 ```text
 candidate → collecting → analyzing → defined → reviewing → approved → developing → validating → released → closed
@@ -12,9 +15,7 @@ candidate → collecting → analyzing → defined → reviewing → approved �
 
 *注：早期轻量起步阶段，可主要关注 `candidate → analyzing → defined → approved → released → closed` 六个核心里程碑状态。*
 
----
-
-## 2. 各阶段含义与门槛条件
+### 2. 各阶段含义与门槛条件
 
 | 状态 | 中文含义 | 准入要求与产出标准 (Gate) | 责任角色 |
 | :--- | :--- | :--- | :--- |
@@ -29,10 +30,43 @@ candidate → collecting → analyzing → defined → reviewing → approved �
 | **`released`** | 正式发布 | 功能已部署生产环境，并具备真实线上运行/验证证据。 | 研发 / 运维 |
 | **`closed`** | 归档关闭 | 完成上线后复盘（归档至 `07-reviews/`），指标达成追踪完毕。 | 产品经理 |
 
----
-
-## 3. 关键纪律
+### 3. 关键纪律
 
 1. **唯一状态源**：需求状态**只在需求池 (`04-requirement-pool/requirement-pool.md`) 统一维护**，禁止在单需求 PRD 内部自造不同步的状态标签。
 2. **变更倒流机制**：一旦处于 `approved` 或 `developing` 状态的需求发生实质性业务或技术方案变更，必须记录变更内容，状态强制回退至 `reviewing`，重新评审确认。
 3. **真实证据门槛**：标记为 `released` 的需求，必须附带线上环境验证截图、API 响应日志或测试验收签字记录，杜绝“代码合并即代表发布”的假象。
+
+---
+
+<a name="english"></a>
+## English Rules
+
+### 1. Status Transition Pipeline
+
+```text
+candidate → collecting → analyzing → defined → reviewing → approved → developing → validating → released → closed
+```
+
+*Note: During early-stage delivery, teams can primarily focus on the six core milestone states: `candidate → analyzing → defined → approved → released → closed`.*
+
+### 2. Phase Definitions & Quality Gates
+
+| Status | Meaning | Entry Criteria & Deliverables (Gate) | Responsible Role |
+| :--- | :--- | :--- | :--- |
+| **`candidate`** | Candidate | Registered in `04-requirement-pool/requirement-pool.md` with clear business problem statement and input source `SRC-XXXX`. | Submitter / PM |
+| **`collecting`** | Collecting | User feedback, competitor workflows, and context data gathered into `01-inputs/`. | Product Manager |
+| **`analyzing`** | Analyzing | Business value and technical feasibility assessed; affected system modules mapped (`03-planning/`). | PM / Architect |
+| **`defined`** | Defined | Comprehensive specs, edge cases, and acceptance criteria (AC) completed in `05-requirements/req-XXXX/`. | Product Manager |
+| **`reviewing`** | In Review | Joint review by engineering, design, and business leads conducted; pending items logged. | Review Team |
+| **`approved`** | Approved | Tripartite sign-off confirmed; requirement allocated to target version in `06-versions/`. | PM / Tech Lead |
+| **`developing`** | In Dev | Active code implementation and unit testing in progress. | Engineering Team |
+| **`validating`** | Validating | Deployed to test environment; verified against PRD acceptance criteria. | QA / PM |
+| **`released`** | Released | Deployed to production with verifiable live operational evidence. | Engineering / DevOps |
+| **`closed`** | Closed | Post-release retrospective logged (`07-reviews/`); metric tracking completed. | Product Manager |
+
+### 3. Critical Disciplines
+
+1. **Single Status Source**: Requirement status is **maintained strictly in the requirement pool (`04-requirement-pool/requirement-pool.md`)**. Maintaining unsynchronized status tags inside individual PRDs is prohibited.
+2. **Reverse Flow Mechanism**: When an `approved` or `developing` requirement encounters substantive business or architectural changes, revisions must be logged and the status reverted to `reviewing` for re-approval.
+3. **Verifiable Evidence Gate**: Marking a requirement as `released` requires production verification screenshots, API response logs, or sign-off notes. Merging code does not constitute release.
+
