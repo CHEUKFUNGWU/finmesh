@@ -92,3 +92,38 @@
 - **FinMesh 深度借鉴**：
   - 借鉴其在数字滚动翻牌（Animated Number）、微动效反馈、沙盘推演流体连接线上的视觉呈现。
   - 为 React Flow 因果沙盘节点注入微妙自然的物理动效，极大提升拖拽交互的愉悦感。
+
+---
+
+## 5. 分析型计算引擎与数据转换血缘体系 (Analytical Engine & Data Modeling/Lineage)
+
+### 5.1 `DuckDB Go Client` & `DuckDB Core Engine`
+- **参考链接**：
+  - [DuckDB Go Client Overview](https://duckdb.org/docs/current/clients/go/overview)
+  - [DuckDB Official Documentation](https://duckdb.org/docs/current/)
+- **技术定位**：
+  - 嵌入式、进程内高性能列式 SQL 分析型数据库（OLAP），专门针对高吞吐量分析聚合查询进行矢量化优化。
+- **FinMesh 深度借鉴与工程落地**：
+  - **Appender 高性能批量入库**：利用 DuckDB 官方 Go Client 的 `Appender` 接口，在解析大体积 CSV/Excel/Parquet 流水时绕过传统 SQL 解析开销，实现每秒百万级交易流水的高速直插。
+  - **租户动态挂载隔离**：利用 `ATTACH 'tenants/{tenant_id}.duckdb' AS tenant_db` 机制，在 Go 服务中实现安全的动态挂载与即时查询，完全物理隔离各租户文件。
+  - **高级财务 SQL 特性**：
+    - `PIVOT / UNPIVOT`：毫秒级实现传统多维 P&L 财务矩阵在“纵向交易行”与“横向月份列”之间的动态透视转换。
+    - 窗口函数：利用 `SUM(net_burn) OVER (ORDER BY posting_date)`、`LAG`、`LEAD` 快速生成累计现金跑道曲线与环比方差分析。
+    - 直接读取远程/本地 Parquet/S3：支持零拷贝即席查询外部大文件。
+
+### 5.2 `dbt-core` & `dbt-docs Lineage`
+- **参考链接**：
+  - [dbt-labs/dbt GitHub 仓库](https://github.com/dbt-labs/dbt)
+  - [dbt Docs v2 & Lineage Graph 官方文档](https://docs.getdbt.com/docs/build/view-documentation?version=2#dbt-docs-v2)
+- **技术定位**：
+  - 现代数据栈（Modern Data Stack）中事实上的数据转换与建模标准，核心能力包括声明式 SQL 编排、Jinja 宏、数据质量测试与全链路血缘图谱（Lineage Graph）。
+- **FinMesh 深度借鉴与工程落地**：
+  - **声明式分层建模思想**：指导 FinMesh 将业财数据清洗划分为三层标准管道：
+    1. `Staging Layer`（贴源层）：对 QuickBooks / NetSuite / Stripe 的原始提取数据做轻量字段重命名与类型转换。
+    2. `Intermediate Layer`（中间层）：对不同来源的交易流水做会计科目映射与借贷方向标准化。
+    3. `Marts Layer`（分析集市）：产出标准的 `fact_gl`、`fact_revenue`、`fact_headcount` 事实表。
+  - **血缘图谱可视化 (Lineage DAG)**：
+    - dbt Docs 的节点依赖图与 FinMesh 的 **React Flow 因果沙盘画布** 在底层图数据结构上高度同构。
+    - 借鉴 dbt 的模型依赖解析，构建“原始凭证表 -> 业财事实表 -> 语义计算指标 -> 经营决策报告”的四级穿透依赖图，为数字点击穿透提供确定性的拓扑追溯链路。
+  - **模型契约与数据对账测试 (Model Contracts & Testing)**：
+    - 借鉴 dbt 的测试规范（`not_null`、`unique`、`relationships`），在数据导入时自动触发财务试算平衡测试（`Total Debits == Total Credits`），测试失败拒绝发布，筑牢零幻觉底线。
