@@ -18,6 +18,9 @@
 | `SRC-0014` | 2026-09-17 | DuckDB Official Documentation | 官方技术文档 | DuckDB Labs | [Website](https://duckdb.org/docs/current/) | DuckDB 列式计算、Parquet/SQL 方言、透视(PIVOT)与窗口函数 | 已分析，指导财务 SQL 模型实现 |
 | `SRC-0015` | 2026-09-17 | dbt-core | 开源项目 | dbt Labs | [GitHub](https://github.com/dbt-labs/dbt) | 声明式数据建模、DAG 依赖编排与财务对账测试规范 | 已分析，指导语义转换管道设计 |
 | `SRC-0016` | 2026-09-17 | dbt Docs v2 & Lineage Graph | 官方技术文档 | dbt Labs | [Website](https://docs.getdbt.com/docs/build/view-documentation?version=2#dbt-docs-v2) | 数据血缘有向图可视化、字段级追溯与模型契约 | 已分析，指导因果画布与穿透审计设计 |
+| `SRC-0017` | 2026-09-17 | 零售业财岗位深度调研报告 | 行业深度调研 | Industry Benchmark | `01-inputs/2026-09-17-retail-fpna-fbp-cross-region-research.md` | 零售/全渠道业财四维岗位矩阵、单店模型与八大核心量化指标 | 已深度分析，沉淀为零售场景基线 |
+| `SRC-0018` | 2026-09-17 | 财务规划与内控审计一体化SaaS调研 | 行业深度调研 | Industry Benchmark | `01-inputs/2026-09-17-fpna-grc-integrated-saas-opportunity-research.md` | 中型企业“产品悬崖”、PVM量价分解、活体RCM与CCM全量监控 | 已深度分析，指导价值主张与核心模块 |
+| `SRC-0019` | 2026-09-17 | 现代高质感SaaS与企业级UI/UX范式 | 设计研究报告 | Industry Benchmark | `01-inputs/2026-09-17-modern-saas-enterprise-ui-ux-design-paradigms.md` | Bento Grid、Cmd+K、Geist/Linear 风格、EIS 高密度数据表格 | 已确立为产品交互与视觉规范基准 |
 
 ## 登记规则
 - 原始材料不静默改写。

@@ -12,3 +12,11 @@
 | **Driver-based Modeling**| Driver-based Modeling | 业务动因建模：基于业务活动量（如线索数、转化率、单价、客单成本）推导财务成果的动态预测模型。 |
 | **MCP** | Model Context Protocol | 模型上下文协议：连接大模型与外部系统工具、资源的标准开放协议。 |
 | **DAG** | Directed Acyclic Graph | 有向无环图：用于表达业财指标因果驱动依赖链条的数据结构。 |
+| **PVM** | Price-Volume-Mix Analysis | 量价组合方差分析：将收入偏差严格拆解为价格变动、销量变动与产品组合变动三种因果因子的经典分析模型。 |
+| **SSSG** | Same-Store Sales Growth | 同店销售增长率：衡量去除新开门店影响后，成熟实体店/渠道内生增长质量的关键零售指标。 |
+| **Take Rate** | Take Rate | 货币化率/抽成率：平台型或电商交易中，平台佣金及增值服务收入占总成交总额（GMV）的百分比。 |
+| **CCM** | Continuous Control Monitoring | 持续控制监控：直连底层业务与财务流水，对 100% 全量交易实施常态化实时扫描的合规与风控机制。 |
+| **SoD** | Segregation of Duties | 职责分离：企业内部控制核心原则，确保不相容职务（如采购下单与付款审批）不能由同一人操作。 |
+| **Bento Grid** | Bento Grid | 便当盒网格布局：源于日式便当盒的非对称 12 列网格布局，依据指标商业优先级分配 Hero/Feature/Metric 空间权重。 |
+| **Cmd+K** | Command Palette | 全局命令面板：支持键盘唤起的模糊搜索与操作执行器，允许在不打断工作流的前提下完成跨模块导航与即时变更。 |
+
