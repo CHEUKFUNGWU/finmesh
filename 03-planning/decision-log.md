@@ -7,4 +7,6 @@
 | `DEC-0003` | 2026-09-17 | 后端技术栈 | Go 核心 + Python 算法 Sidecar | 纯 Python 全栈 / 纯 TS 全栈 | Go 提供顶级并发、低资源与部署稳定性；Python 提供高级统计扩展 |
 | `DEC-0004` | 2026-09-17 | 财务防幻觉机制 | 声明式语义层 + 确定性 SQL + 数字穿透 | 大模型心算 / 纯硬编码模版 | 100% 数学确定性与 CFO/审计可信证据链 |
 | `DEC-0005` | 2026-09-17 | 沙盘推演交互 | React Flow 因果 DAG 画布 + 滑块 | 纯静态表格 / 独立沙盘草稿纸 | 直观可视化因果驱动链，并与底层真实历史数据实时绑定 |
-| `DEC-0006` | 2026-09-17 | MCP 开放形态 | 双模 MCP（Remote SSE/HTTP + Local Stdio） | 纯闭环云端 Webhook | 既支持企业级远程 Agent，又支持分析师在 Claude Desktop 本地直连 |
+| `DEC-0006` | 2026-09-17 | MCP 开放形态 | 双模 MCP（Remote SSE/HTTP + Local Stdio） | 纯闭环云端 Webhook | 既支持企业级远程 Agent，又支持分析师在本地桌面环境直连 |
+| `DEC-0007` | 2026-09-17 | 模型网关选型 | 支持 OpenAI-compatible API、Anthropic-compatible API、Response API 以及本地/云端自托管模型 | 绑定特定商业大模型（如单一供应商） | 保持模型中立与协议抽象，降低供应商锁定风险，支持企业私有化部署 |
+

@@ -216,10 +216,10 @@ Golang 做 Backend 与 AI 中台完全可行，在生产环境具备高并发、
 在 AI 推理核心层（负责理解财务意图、生成 DuckDB SQL 以及撰写专业 Finance BP 经营备忘录）的模型选型与供应商策略上，您的倾向是？
 
 ### 候选方案与考量
-- **选项 1 (Recommended)**：模型中立网关（支持 Claude 3.7 / GPT-4o / DeepSeek R1 / 本地私有模型）：采用标准 OpenAI 兼容适配层，默认接入推理与格式化能力最强的主流模型（如 Claude 3.7 Sonnet 做分析报告，DeepSeek R1 做深度复杂归因推导）；同时支持客户配置自己的 API Key 或企业私有化部署模型（vLLM/Ollama）。
-- **选项 2**：全押注 Claude 深度推理生态（Anthropic Native + Tool Use）：基于 Claude 强大的长上下文与顶尖的代码/结构化 Tool Use 能力，深度利用 Anthropic 的 Prompts 优化，在财务异动归因和备忘录写作上做到业界顶级。
-- **选项 3**：成本优先与国内生态就绪（DeepSeek / Qwen 优先）：针对出海与国内双重客群，优先适配极高性价比的 DeepSeek-V3/R1 及通义千问，压低中小企业 SaaS 的 AI 运营成本。
+- **选项 1 (Recommended)**：模型中立网关（支持 OpenAI-compatible API、Anthropic-compatible API、Response API 以及本地/云端自托管模型）：采用协议层抽象，不绑定单一模型供应商。支持接入各类商业端点与自托管模型服务（如 vLLM、Ollama），支持租户自主配置端点、API Key 与上下文参数。
+- **选项 2**：单一商业生态深度绑定（专用 SDK 绑定）：基于特定厂商专有 SDK 深度定制，虽可利用厂商特有参数，但存在供应商锁定与客户私有化部署障碍。
+- **选项 3**：仅支持本地私有模型：完全隔离外部云端 API，仅支持本地部署实例，安全性高但中小企业算力维护成本过高。
 
 ### 用户确认答复
 > **`选项 1 (Recommended)`**
-> （决策结论：采用模型中立网关适配层，支持主流商业与私有化模型接入。）
+> （决策结论：采用模型中立网关适配层，支持 OpenAI-compatible API、Anthropic-compatible API、Response API 以及本地/云端自托管模型接入。）

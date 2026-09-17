@@ -21,7 +21,7 @@
 | | OpenBB Platform | AGPLv3 | **存在网络传染风险 (Network Copyleft)**：修改源码并通过网络提供服务有开源诉求。 | **容器隔离**：作为独立微服务运行，仅通过 REST API 交互，不直接 import 其源码。 |
 | | FinGPT | MIT | 代码本身为 MIT，但需注意微调基座模型自身的商业使用量上限限制。 | 用于金融分析微调实验。 |
 | | NeMo Guardrails | Apache 2.0 | 宽松商用：NVIDIA 官方开源。 | 财务对话与 SQL 生成的安全防御栏。 |
-| | LiteLLM | MIT | 宽松商用：网关核心代码为 MIT（部分管理面板需企业授权）。 | 多模型统一适配代理网关（Claude/GPT/DeepSeek）。 |
+| | LiteLLM | MIT | 宽松商用：网关核心代码为 MIT（部分管理面板需企业授权）。 | 多模型适配代理网关（统一接入 OpenAI-compatible、Anthropic-compatible 与自托管模型）。 |
 | | Qdrant | Apache 2.0 | 宽松商用：支持自建向量集群。 | 财务文档非结构化 RAG 向量检索。 |
 | **前端组件** | shadcn/ui | MIT | 宽松商用：组件直接以源码形式放入项目，无外部运行时依赖。 | 前端基础 UI 规范。 |
 | | Tremor | Apache 2.0 | 宽松商用：可自由定制与调整样式。 | 仪表盘 KPI 卡片与微型图表。 |

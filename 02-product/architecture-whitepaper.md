@@ -89,7 +89,7 @@ flowchart TB
         AuthTenant["多租户与组织权限 (RBAC)"]
         DataIngestion["数据集成流水线\n(CSV/Excel 解析器 + API 连接器)"]
         SemanticEngine["声明式语义指标层 (Semantic Metric Engine)"]
-        LLMOrchestrator["模型中立推理网关\n(Claude 3.7 / GPT-4o / DeepSeek R1)"]
+        LLMOrchestrator["模型中立网关\n(OpenAI/Anthropic-compatible / Response API / 自托管模型)"]
         DuckDBManager["DuckDB 租户隔离驱动引擎\n(go-duckdb)"]
     end
 
@@ -136,7 +136,7 @@ sequenceDiagram
     actor User as CFO / Finance BP
     participant WebUI as Next.js 页面 / Memo
     participant GoCore as Go 调度中枢
-    participant LLM as 大模型 (Claude/DeepSeek)
+    participant LLM as 推理模型 (OpenAI/Anthropic-compatible)
     participant Semantics as 语义指标目录
     participant DuckDB as 租户专属 DuckDB
 
@@ -228,7 +228,7 @@ FinMesh 原生集成 Model Context Protocol (MCP)，外部 Agent（如 Claude De
 - **Backend (Core SaaS & MCP)**: Go (Golang 1.23+), Gin/Echo, `go-duckdb`, `mcp-go`, GORM/SQLX.
 - **Python Sidecar**: Python 3.11+, FastAPI, Prophet, StatsForecast.
 - **Databases & Storage**: DuckDB (嵌入式列式分析), PostgreSQL 16 (关系元数据与权限), Valkey/Redis (缓存与任务队列).
-- **LLM Gateway**: OpenAI-compatible 适配层，支持 Claude 3.7 Sonnet, GPT-4o, DeepSeek-R1 / V3。
+- **LLM Gateway**: 支持 OpenAI-compatible API、Anthropic-compatible API、Response API 以及本地/云端自托管模型（如 vLLM / Ollama）。
 
 ---
 
