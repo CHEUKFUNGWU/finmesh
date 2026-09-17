@@ -72,6 +72,8 @@ graph LR
 - 月结时自动运行量价方差分解，定位根本驱动因子（价量差异、部门超支、转化漏斗变动），生成带 Waterfall 瀑布图与业务建议的文字备忘录。
 - **数字穿透审计**：文档中的所有数值均带有原始数据链接，点击可打开抽屉查看对应的 SQL 查询与明细账分录。
 
+以上为产品形态基线。v0.1 交付子集（单向 xlsx、预置驱动因子、科目/部门贡献方差；不含双向插件、NL 建图、完整 PVM）以 [§9](#9-mvp-交付范围与开发路线图) 为准。
+
 ---
 
 ## 4. 系统整体架构与技术选型
@@ -240,14 +242,30 @@ FinMesh 原生集成 Model Context Protocol (MCP)，外部 Agent（如 Claude De
 
 ## 9. MVP 交付范围与开发路线图
 
+切片形状遵循 `DEC-0011`（`SRC-0001` 轮次 12）：入库、语义指标、P&L 网格、沙盘、穿透 Memo、Go MCP。不改为引擎先行或前端 Mock 先行，也不新增第六个 P0 模块。联合作业闭环见 [问题空间 · Milestone 1](../03-planning/problem-space.md#milestone-1-作业闭环)。
+
 ### 阶段一：端到端垂直切片 MVP (当前重点)
+
+**准入数据**
+- 同一套 COA 映射下至少两份文件：Actual（GL 总账和/或收入流水），以及 Budget（GL 或科目级 P&L）。
+- 写入 `fact_gl` / `fact_revenue` 与 `dim_scenario`；科目映射需人工确认后才进入计算。
+
+**范围清单**
 - [x] 完成整体产品定义与核心架构推演 (`/grill-me`)
 - [ ] 搭建 Go 后端基础骨架并集成 `go-duckdb`
-- [ ] 实现标准财务 CSV/Excel（GL 总账、收入流水）拖拽入库与 DuckDB 事实表写入
-- [ ] 实现声明式语义指标计算引擎（基础 P&L 核心指标）
-- [ ] 实现 Go 原生 MCP Server（支持指标查询与方差归因工具）
-- [ ] 搭建 Next.js 前端工作台（P&L 多维网格 + React Flow 驱动沙盘 + 穿透备忘录）
-- [ ] 端到端实测数据平衡性与穿透下钻证据链
+- [ ] 拖拽入库 Actual 与 Budget，写入租户 DuckDB 事实表与 `dim_scenario`
+- [ ] 声明式语义指标：预置 P&L，输出 Actual / Budget / Variance / Variance %，切片到科目与部门
+- [ ] Next.js P&L 网格展示上述四列；当前视图单向导出 xlsx（`DEC-0008`）
+- [ ] React Flow 预置 5–8 个驱动因子（含 CAC 或招聘延迟、期初现金）；滑块重算 P&L 与现金跑道；对比 Base vs 当前 What-If。画布节点必须编译为 DuckDB SQL（`DEC-0009`）
+- [ ] 预实差 Memo：科目树 + 部门贡献 + Waterfall；每个数字可穿透到 SQL 与明细。收入文件无数量/单价时不承诺完整 PVM
+- [ ] Go 原生 MCP Server：`query_financial_metric`、`explain_variance`、`simulate_scenario`、`drill_down_transactions` 均支持 `scenario`，与网格同一指标契约
+- [ ] 联合验收：同一套样例账套跑通问题空间中的 7 步闭环；Memo、网格、MCP 数字一致；明细与总账可核对
+
+**阶段一非目标**
+- QuickBooks / Xero / Stripe 直连、数仓挂载、双向 Excel 写回
+- 独立 Text-to-SQL / Chat 窗口、自然语言生成画布、Bull/Bear 三情景编辑器
+- dbt 自定义管道、原生 pptx 导出、Prophet / 蒙特卡洛
+- 全面预算编制与审批、多主体合并、跨部门问询 Bot（`DEC-0010`）
 
 ### 阶段二：集成拓展与双向联动
 - [ ] 接入 QuickBooks, Xero, Stripe API 直接同步
@@ -324,6 +342,8 @@ graph LR
 #### 3.3 Executive Memo & Variance Diagnosis
 - Automatically executes Price-Volume-Mix (PVM) variance decomposition during month-end close, isolating root drivers (price/volume deltas, department overspending, conversion funnel shifts) and generating narrative memos with waterfall bridges.
 - **Zero-Hallucination Audit Drill-down**: Every figure in the memo is an interactive link that opens a drawer showing the underlying SQL query and individual transaction ledger entries.
+
+The above is the product-shape baseline. The v0.1 subset (one-way xlsx, preset drivers, account/department contribution variance; excluding bidirectional add-ins, NL graph generation, and full PVM) is defined in [§9](#9-mvp-scope--delivery-roadmap).
 
 ---
 
@@ -493,14 +513,30 @@ FinMesh provides native Model Context Protocol (MCP) support, enabling external 
 
 ### 9. MVP Scope & Delivery Roadmap
 
+Slice shape follows `DEC-0011` (`SRC-0001` Round 12): ingestion, semantic metrics, P&L grid, canvas, drill-down memo, and Go MCP. Do not switch to engine-first or frontend-mock-first, and do not add a sixth P0 module. The shared job loop is in [Problem Space · Milestone 1](../03-planning/problem-space.md#milestone-1-job-loop).
+
 #### Phase 1: End-to-End Vertical Slice MVP (Current Focus)
+
+**Admission data**
+- At least two files under one COA mapping: Actuals (GL and/or revenue movements) and Budget (GL or account-level P&L).
+- Writes `fact_gl` / `fact_revenue` and `dim_scenario`; mapping is confirmed by a person before compute.
+
+**Scope checklist**
 - [x] Product definition and architecture stress-testing completed (`/grill-me`)
 - [ ] Initialize Go backend scaffolding with `go-duckdb` integration
-- [ ] Implement drag-and-drop ingestion for standard financial CSV/Excel into DuckDB fact tables
-- [ ] Build declarative semantic metric engine (core P&L metrics)
-- [ ] Implement Go native MCP Server with metric query and variance attribution tools
-- [ ] Build Next.js frontend workspace (P&L grid + React Flow canvas + drill-down memo)
-- [ ] Verify trial balance reconciliation and audit drill-down end-to-end
+- [ ] Drag-and-drop ingest Actuals and Budget into tenant DuckDB facts and `dim_scenario`
+- [ ] Declarative semantic metrics: preset P&L with Actual / Budget / Variance / Variance %, sliced by account and department
+- [ ] Next.js P&L grid showing those four columns; one-way xlsx export of the current view (`DEC-0008`)
+- [ ] React Flow with 5–8 preset drivers (including CAC or hiring delay, and opening cash); sliders recompute P&L and cash runway; compare Base vs current What-If. Canvas nodes must compile to DuckDB SQL (`DEC-0009`)
+- [ ] Variance memo: account tree + department contribution + waterfall; every figure drills to SQL and ledger rows. Full PVM is not promised when the revenue file has no quantity/price
+- [ ] Go native MCP Server: `query_financial_metric`, `explain_variance`, `simulate_scenario`, and `drill_down_transactions` all accept `scenario` and share the grid's metric contract
+- [ ] Joint acceptance: one sample ledger completes the seven-step loop in the problem space; memo, grid, and MCP figures match; detail ties to the ledger
+
+**Phase 1 non-goals**
+- QuickBooks / Xero / Stripe connectors, warehouse mounting, bidirectional Excel write-back
+- Standalone Text-to-SQL / chat window, natural-language canvas generation, Bull/Bear scenario editor
+- Custom dbt pipelines, native pptx export, Prophet / Monte Carlo
+- Full budget authoring and approval, multi-entity consolidation, departmental inquiry bot (`DEC-0010`)
 
 #### Phase 2: Integrations & Bidirectional Sync
 - [ ] Direct API connectors for QuickBooks, Xero, and Stripe
