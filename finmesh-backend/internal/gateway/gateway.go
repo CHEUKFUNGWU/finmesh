@@ -242,7 +242,13 @@ func (g *ModelGateway) dispatchHTTP(ctx context.Context, systemPrompt, userPromp
 		if err != nil {
 			return "", err
 		}
-		endpoint := strings.TrimRight(g.config.BaseURL, "/") + "/v1/messages"
+		base := strings.TrimRight(g.config.BaseURL, "/")
+		var endpoint string
+		if strings.HasSuffix(base, "/v1") {
+			endpoint = base + "/messages"
+		} else {
+			endpoint = base + "/v1/messages"
+		}
 		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(jsonBytes))
 		if err != nil {
 			return "", err
@@ -283,7 +289,13 @@ func (g *ModelGateway) dispatchHTTP(ctx context.Context, systemPrompt, userPromp
 		if err != nil {
 			return "", err
 		}
-		endpoint := strings.TrimRight(g.config.BaseURL, "/") + "/v1/chat/completions"
+		base := strings.TrimRight(g.config.BaseURL, "/")
+		var endpoint string
+		if strings.HasSuffix(base, "/v1") {
+			endpoint = base + "/chat/completions"
+		} else {
+			endpoint = base + "/v1/chat/completions"
+		}
 		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(jsonBytes))
 		if err != nil {
 			return "", err
