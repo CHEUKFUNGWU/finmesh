@@ -2,3 +2,16 @@
 ~$*.docx
 ~$*.xlsx
 ~$*.pptx
+
+# Go build artifacts
+finmesh-backend/bin/
+*.duckdb
+*.duckdb.wal
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+.env*.local
+.pnpm-debug.log*
