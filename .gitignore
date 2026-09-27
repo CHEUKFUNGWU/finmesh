@@ -15,3 +15,4 @@ out/
 dist/
 .env*.local
 .pnpm-debug.log*
+.pnpm-store/

@@ -5,9 +5,10 @@ import { PnLTable } from "@/components/report/PnLTable";
 import { DriverCanvas } from "@/components/canvas/DriverCanvas";
 import { AuditDrawer } from "@/components/audit/AuditDrawer";
 import { VarianceMemo } from "@/components/memo/VarianceMemo";
+import { ExcelTaskpane } from "@/components/excel/ExcelTaskpane";
 
 export default function WorkspacePage() {
-  const [activeTab, setActiveTab] = useState<"report" | "canvas" | "memo">("report");
+  const [activeTab, setActiveTab] = useState<"report" | "canvas" | "memo" | "excel">("report");
   const [selectedAudit, setSelectedAudit] = useState<any>(null);
 
   const handleSelectToken = (metricId: string, sqlHash?: string) => {
@@ -127,6 +128,16 @@ export default function WorkspacePage() {
         >
           Autonomous Variance Memo
         </button>
+        <button
+          onClick={() => setActiveTab("excel")}
+          className={`px-3.5 py-1.5 rounded text-xs font-medium transition-colors ${
+            activeTab === "excel"
+              ? "bg-neutral-800 text-white border border-neutral-700"
+              : "text-neutral-400 hover:text-white"
+          }`}
+        >
+          Excel Sync Add-in
+        </button>
       </div>
 
       {/* Main Content Area */}
@@ -140,6 +151,10 @@ export default function WorkspacePage() {
 
       {activeTab === "memo" && (
         <VarianceMemo onTokenClick={handleSelectToken} />
+      )}
+
+      {activeTab === "excel" && (
+        <ExcelTaskpane />
       )}
 
       {/* Zero-Hallucination Audit Drawer */}

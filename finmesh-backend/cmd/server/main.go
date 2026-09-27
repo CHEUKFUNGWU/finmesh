@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/CHEUKFUNGWU/finmesh/backend/internal/api"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/mcp"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/model"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/semantic"
@@ -65,8 +66,11 @@ func main() {
 		}
 	case "http":
 		sseServer := server.NewSSEServer(mcpServer.MCPServer())
+		apiHandler := api.NewAPIHandler(catalog, compiler, db)
+
 		mux := http.NewServeMux()
 		mux.Handle("/sse", sseServer)
+		apiHandler.RegisterRoutes(mux)
 		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"status":"ok","engine":"finmesh-duckdb"}`))
