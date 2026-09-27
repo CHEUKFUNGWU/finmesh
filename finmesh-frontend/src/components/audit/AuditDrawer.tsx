@@ -74,22 +74,52 @@ export function AuditDrawer({ isOpen, onClose, data }: AuditDrawerProps) {
 
           <div>
             <label className="text-xs font-medium text-neutral-300 block mb-1.5">Contributing Ledger Entries (FactGeneralLedger)</label>
-            <div className="border border-neutral-800 rounded-lg text-xs">
+            <div className="border border-neutral-800 rounded-lg text-xs overflow-hidden">
               <div className="bg-[#161F30] p-2.5 text-neutral-400 border-b border-neutral-800 flex justify-between font-medium">
                 <span>Voucher ID</span>
                 <span>Account</span>
                 <span>Amount</span>
               </div>
-              <div className="p-2.5 flex justify-between border-b border-neutral-800 text-neutral-300">
-                <span>ACT-001</span>
-                <span>6001 SaaS ARR</span>
-                <span className="text-emerald-400 font-medium">$180,000.00</span>
-              </div>
-              <div className="p-2.5 flex justify-between text-neutral-300">
-                <span>ACT-002</span>
-                <span>6401 Cloud Infra</span>
-                <span className="text-rose-400 font-medium">$36,000.00</span>
-              </div>
+              {data.metricName === "cogs" ? (
+                <>
+                  <div className="p-2.5 flex justify-between border-b border-neutral-800 text-neutral-300">
+                    <span>ACT-002</span>
+                    <span>5001 Cloud Infrastructure (AWS)</span>
+                    <span className="text-rose-400 font-mono font-medium">$24,000.00</span>
+                  </div>
+                  <div className="p-2.5 flex justify-between text-neutral-300">
+                    <span>ACT-004</span>
+                    <span>5002 Customer Support Hosting</span>
+                    <span className="text-rose-400 font-mono font-medium">$12,000.00</span>
+                  </div>
+                </>
+              ) : data.metricName === "opex" ? (
+                <>
+                  <div className="p-2.5 flex justify-between border-b border-neutral-800 text-neutral-300">
+                    <span>ACT-003</span>
+                    <span>6601 R&D Engineering Payroll</span>
+                    <span className="text-rose-400 font-mono font-medium">$25,000.00</span>
+                  </div>
+                  <div className="p-2.5 flex justify-between text-neutral-300">
+                    <span>ACT-005</span>
+                    <span>6701 Sales & Marketing Spend</span>
+                    <span className="text-rose-400 font-mono font-medium">$15,000.00</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-2.5 flex justify-between border-b border-neutral-800 text-neutral-300">
+                    <span>ACT-001</span>
+                    <span>6001 Enterprise Annual License</span>
+                    <span className="text-emerald-400 font-mono font-medium">$120,000.00</span>
+                  </div>
+                  <div className="p-2.5 flex justify-between text-neutral-300">
+                    <span>ACT-006</span>
+                    <span>6002 Mid-Market Subscriptions</span>
+                    <span className="text-emerald-400 font-mono font-medium">$60,000.00</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

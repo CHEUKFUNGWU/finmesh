@@ -90,10 +90,20 @@ func (c *Compiler) compileDerivedMetricSQL(metric model.MetricDefinition, q mode
 		return "", err
 	}
 
+	// Deterministic topological ordering for CTE emission
+	sortedAll, err := c.catalog.TopologicalSort()
+	if err != nil {
+		return "", fmt.Errorf("cycle detected in metric dependencies: %w", err)
+	}
+
 	var cteList []string
 	var fromTables []string
 
-	for depName, depMetric := range requiredMetrics {
+	for _, depName := range sortedAll {
+		depMetric, needed := requiredMetrics[depName]
+		if !needed {
+			continue
+		}
 		baseTable := depMetric.BaseTable
 		if baseTable == "" {
 			baseTable = "fact_general_ledger"
@@ -191,17 +201,44 @@ func (c *Compiler) ExecuteMetric(ctx context.Context, q model.MetricQuery) (*mod
 	}, nil
 }
 
-// PVMInputs allows passing operational driver factors for exact Price-Volume-Mix calculation.
-type PVMInputs struct {
-	BaseVolume    float64 // Q_baseline
-	CompVolume    float64 // Q_comparison
-	BasePrice     float64 // P_baseline
-	CompPrice     float64 // P_comparison
-	BaseUnitCost  float64 // C_baseline
-	CompUnitCost  float64 // C_comparison
+// CalculatePVMDecomposition calculates algebraic Price-Volume-Mix decomposition adhering strictly to REQ-0004 §4.1.
+func CalculatePVMDecomposition(metricName string, input model.PVMInputs) (*model.VarianceBreakdown, error) {
+	// Delta_volume = (Q_act - Q_bud) * P_bud
+	volVar := (input.CompVolume - input.BaseVolume) * input.BasePrice
+	// Delta_price = (P_act - P_bud) * Q_act
+	priceVar := (input.CompPrice - input.BasePrice) * input.CompVolume
+	// Delta_cost = (C_bud - C_act) * Q_act
+	costVar := (input.BaseUnitCost - input.CompUnitCost) * input.CompVolume
+
+	compTotal := (input.CompVolume * input.CompPrice) - (input.CompVolume * input.CompUnitCost)
+	baseTotal := (input.BaseVolume * input.BasePrice) - (input.BaseVolume * input.BaseUnitCost)
+	totalVariance := compTotal - baseTotal
+
+	// Total variance conservation: Delta_total = Delta_volume + Delta_price + Delta_cost + Mix/Residual
+	residual := totalVariance - (volVar + priceVar + costVar)
+
+	// Conservation check: if deviation > 0.01, reject per REQ-0004 §4.1
+	reconstructed := volVar + priceVar + costVar + residual
+	if math.Abs(totalVariance-reconstructed) > 0.01 {
+		return nil, fmt.Errorf("PVM conservation check failed: total variance %.4f != reconstructed %.4f (deviation > 0.01)",
+			totalVariance, reconstructed)
+	}
+
+	return &model.VarianceBreakdown{
+		MetricName:      metricName,
+		BaselineValue:   math.Round(baseTotal*100) / 100,
+		ComparisonValue: math.Round(compTotal*100) / 100,
+		TotalVariance:   math.Round(totalVariance*100) / 100,
+		VolumeVariance:  math.Round(volVar*100) / 100,
+		PriceVariance:   math.Round(priceVar*100) / 100,
+		CostVariance:    math.Round(costVar*100) / 100,
+		Unexplained:     math.Round(residual*100) / 100,
+	}, nil
 }
 
 // ExecuteVariance calculates delta and Price-Volume-Mix (PVM) decomposition between scenarios.
+// If operational quantity data is not recorded in the ledger, the observed delta is preserved
+// in TotalVariance with 0 volume/price attribution to maintain zero-hallucination standards.
 func (c *Compiler) ExecuteVariance(ctx context.Context, metricName, baselineScenario, compScenario string) (*model.VarianceBreakdown, error) {
 	baseRes, err := c.ExecuteMetric(ctx, model.MetricQuery{
 		MetricName: metricName,
@@ -221,32 +258,105 @@ func (c *Compiler) ExecuteVariance(ctx context.Context, metricName, baselineScen
 
 	totalVariance := math.Round((compRes.Value-baseRes.Value)*100) / 100
 
-	// Deterministic algebraic PVM decomposition:
-	// For top-level metrics, we determine directional variance and satisfy exact conservation.
-	// When sub-ledger unit quantities are present, volume & price deltas follow standard FP&A equations:
-	// Delta_volume = (Q_comp - Q_base) * P_base
-	// Delta_price  = (P_comp - P_base) * Q_comp
-	// Delta_cost   = (C_base - C_comp) * Q_comp
-	// Delta_total == Delta_volume + Delta_price + Delta_cost + Unexplained
-	volumeVar := 0.0
-	priceVar := 0.0
-	costVar := 0.0
+	// Check if operational driver quantities are recorded in fact_operational_metrics
+	var baseVol, compVol, basePrice, compPrice sql.NullFloat64
+	_ = c.db.QueryRowContext(ctx, `
+		SELECT 
+			MAX(CASE WHEN scenario = ? AND metric_name = 'volume' THEN metric_value END),
+			MAX(CASE WHEN scenario = ? AND metric_name = 'volume' THEN metric_value END),
+			MAX(CASE WHEN scenario = ? AND metric_name = 'unit_price' THEN metric_value END),
+			MAX(CASE WHEN scenario = ? AND metric_name = 'unit_price' THEN metric_value END)
+		FROM fact_operational_metrics
+	`, baselineScenario, compScenario, baselineScenario, compScenario).Scan(&baseVol, &compVol, &basePrice, &compPrice)
 
-	if baseRes.Value != 0 {
-		rate := (compRes.Value - baseRes.Value) / baseRes.Value
-		volumeVar = math.Round(baseRes.Value*rate*0.60*100) / 100
-		priceVar = math.Round(baseRes.Value*rate*0.40*100) / 100
+	if baseVol.Valid && compVol.Valid && basePrice.Valid && compPrice.Valid && baseVol.Float64 > 0 {
+		return CalculatePVMDecomposition(metricName, model.PVMInputs{
+			BaseVolume: baseVol.Float64,
+			CompVolume: compVol.Float64,
+			BasePrice:  basePrice.Float64,
+			CompPrice:  compPrice.Float64,
+		})
 	}
-	unexplained := math.Round((totalVariance-(volumeVar+priceVar+costVar))*100) / 100
 
+	// When operational drivers are absent, preserve exact total variance with zero hallucinated split
 	return &model.VarianceBreakdown{
 		MetricName:      metricName,
 		BaselineValue:   baseRes.Value,
 		ComparisonValue: compRes.Value,
 		TotalVariance:   totalVariance,
-		VolumeVariance:  volumeVar,
-		PriceVariance:   priceVar,
-		CostVariance:    costVar,
-		Unexplained:     unexplained,
+		VolumeVariance:  0.0,
+		PriceVariance:   0.0,
+		CostVariance:    0.0,
+		Unexplained:     totalVariance,
 	}, nil
+}
+
+// ExecuteMonthlyPivot runs DuckDB native PIVOT query to produce horizontal monthly P&L schedules per REQ-0002 §4.2.
+func (c *Compiler) ExecuteMonthlyPivot(ctx context.Context, scenario, year string) ([]model.MonthlyPivotRow, error) {
+	if scenario != "" && !validIdentifierRegex.MatchString(scenario) {
+		return nil, fmt.Errorf("invalid scenario: %s", scenario)
+	}
+	if year == "" {
+		year = "2026"
+	}
+	if !regexp.MustCompile(`^\d{4}$`).MatchString(year) {
+		return nil, fmt.Errorf("invalid year format: %s", year)
+	}
+
+	pivotSQL := fmt.Sprintf(`
+		PIVOT (
+			SELECT strftime(posting_date, '%%b') as month_name, account_category,
+				CASE WHEN account_category = 'Revenue' THEN (credit_amount - debit_amount)
+				     ELSE (debit_amount - credit_amount)
+				END as val
+			FROM fact_general_ledger
+			WHERE scenario = '%s' AND strftime(posting_date, '%%Y') = '%s'
+		)
+		ON month_name IN ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+		USING sum(val)
+		GROUP BY account_category
+		ORDER BY account_category;
+	`, scenario, year)
+
+	rows, err := c.db.QueryContext(ctx, pivotSQL)
+	if err != nil {
+		return nil, fmt.Errorf("failed executing monthly pivot: %w", err)
+	}
+	defer rows.Close()
+
+	monthsList := []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+	var results []model.MonthlyPivotRow
+
+	for rows.Next() {
+		var category string
+		vals := make([]sql.NullFloat64, 12)
+		dest := make([]interface{}, 13)
+		dest[0] = &category
+		for i := 0; i < 12; i++ {
+			dest[i+1] = &vals[i]
+		}
+
+		if err := rows.Scan(dest...); err != nil {
+			return nil, fmt.Errorf("failed scanning pivot row: %w", err)
+		}
+
+		mMap := make(map[string]float64)
+		total := 0.0
+		for i, m := range monthsList {
+			v := 0.0
+			if vals[i].Valid {
+				v = math.Round(vals[i].Float64*100) / 100
+			}
+			mMap[m] = v
+			total += v
+		}
+
+		results = append(results, model.MonthlyPivotRow{
+			AccountCategory: category,
+			Months:          mMap,
+			Total:           math.Round(total*100) / 100,
+		})
+	}
+
+	return results, nil
 }

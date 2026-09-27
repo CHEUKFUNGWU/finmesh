@@ -120,4 +120,25 @@ func TestMCPServerTools(t *testing.T) {
 	if resDrill.IsError {
 		t.Fatalf("drilldown tool returned error: %v", resDrill.Content)
 	}
+
+	// Test 5: Month-End query (2026-01) including entries through Jan 31
+	reqMonth := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "drilldown_transaction_ledger",
+			Arguments: map[string]interface{}{
+				"metric_name": "revenue",
+				"period":      "2026-01",
+				"scenario":    "actual",
+				"limit":       5,
+			},
+		},
+	}
+	resMonth, err := s.handleDrilldownLedger(ctx, reqMonth)
+	if err != nil {
+		t.Fatalf("month-end drilldown error: %v", err)
+	}
+	if resMonth.IsError {
+		t.Fatalf("month-end drilldown returned error: %v", resMonth.Content)
+	}
 }
+

@@ -204,4 +204,47 @@ func TestCompilerExecuteMetric(t *testing.T) {
 	if err == nil {
 		t.Error("expected error on malicious scenario input, got nil")
 	}
+
+	// Test ExecuteMonthlyPivot
+	pivotRows, err := compiler.ExecuteMonthlyPivot(ctx, "actual", "2026")
+	if err != nil {
+		t.Fatalf("failed executing monthly pivot: %v", err)
+	}
+	if len(pivotRows) == 0 {
+		t.Errorf("expected pivot rows, got 0")
+	}
+
+	// Test Algebraic PVM Decomposition (REQ-0004 §4.1)
+	pvmInput := model.PVMInputs{
+		BaseVolume:   1000,
+		CompVolume:   1200,
+		BasePrice:    50.0,
+		CompPrice:    55.0,
+		BaseUnitCost: 20.0,
+		CompUnitCost: 22.0,
+	}
+	// BaseTotal = 1000*(50-20) = 30000
+	// CompTotal = 1200*(55-22) = 39600
+	// TotalVariance = 9600
+	// VolVar = (1200 - 1000) * 50 = 10000
+	// PriceVar = (55 - 50) * 1200 = 6000
+	// CostVar = (20 - 22) * 1200 = -2400
+	// Residual = 9600 - (10000 + 6000 - 2400) = 9600 - 13600 = -4000
+	pvmRes, err := CalculatePVMDecomposition("gross_profit", pvmInput)
+	if err != nil {
+		t.Fatalf("unexpected PVM error: %v", err)
+	}
+	if pvmRes.TotalVariance != 9600.0 {
+		t.Errorf("expected total variance 9600, got %v", pvmRes.TotalVariance)
+	}
+	if pvmRes.VolumeVariance != 10000.0 {
+		t.Errorf("expected volume variance 10000, got %v", pvmRes.VolumeVariance)
+	}
+	if pvmRes.PriceVariance != 6000.0 {
+		t.Errorf("expected price variance 6000, got %v", pvmRes.PriceVariance)
+	}
+	if pvmRes.CostVariance != -2400.0 {
+		t.Errorf("expected cost variance -2400, got %v", pvmRes.CostVariance)
+	}
 }
+

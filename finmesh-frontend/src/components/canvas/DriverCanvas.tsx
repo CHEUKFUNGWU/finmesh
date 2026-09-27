@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import {
   ReactFlow,
   Background,
@@ -301,14 +301,47 @@ export function DriverCanvas() {
     },
   ]);
 
-  // Cycle prevention with Kahn's check
+  const [cycleError, setCycleError] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<{ id: string; label: string; value: number; baseline: number } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // DFS/Reachability cycle prevention: verifies that target cannot already reach source
+  const wouldCreateCycle = (source: string, target: string, currentEdges: Edge[]): boolean => {
+    if (source === target) return true;
+    const adjacency = new Map<string, string[]>();
+    for (const e of currentEdges) {
+      const list = adjacency.get(e.source) || [];
+      list.push(e.target);
+      adjacency.set(e.source, list);
+    }
+    const visited = new Set<string>();
+    const queue = [target];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      if (curr === source) return true;
+      if (!visited.has(curr)) {
+        visited.add(curr);
+        const neighbors = adjacency.get(curr) || [];
+        for (const n of neighbors) {
+          if (!visited.has(n)) queue.push(n);
+        }
+      }
+    }
+    return false;
+  };
+
   const onConnect = useCallback((connection: Connection) => {
-    if (connection.source === connection.target) {
-      alert("Self-referencing cycles are prohibited.");
+    setCycleError(null);
+    if (!connection.source || !connection.target) return;
+
+    if (wouldCreateCycle(connection.source, connection.target, edges)) {
+      setCycleError(
+        `循环引用阻断 (Cycle Blocked): 连接 [${connection.source}] → [${connection.target}] 会导致 DAG 有向无环图出现闭环，系统已自动拦截。`
+      );
       return;
     }
     setEdges((eds) => addEdge({ ...connection, markerEnd: { type: MarkerType.ArrowClosed } }, eds));
-  }, []);
+  }, [edges]);
 
   const handleExportScenario = () => {
     const payload = {
@@ -338,14 +371,48 @@ export function DriverCanvas() {
     URL.revokeObjectURL(url);
   };
 
+  const handleImportScenario = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target?.result as string);
+        if (data.drivers) {
+          if (typeof data.drivers.price_lift_percent === "number") setPriceLift(data.drivers.price_lift_percent);
+          if (typeof data.drivers.churn_rate_delta_percent === "number") setChurnDelta(data.drivers.churn_rate_delta_percent);
+          if (typeof data.drivers.marketing_spend_delta_percent === "number") setMarketingSpend(data.drivers.marketing_spend_delta_percent);
+          setCycleError(null);
+        }
+      } catch (err) {
+        setCycleError("Failed to parse scenario JSON file.");
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleReset = () => {
     setPriceLift(0);
     setChurnDelta(0);
     setMarketingSpend(0);
+    setCycleError(null);
+  };
+
+  const onNodeClick = (_: React.MouseEvent, node: Node) => {
+    if (node.type === "metricNode") {
+      const data = node.data as { label: string; value: number; baseline: number };
+      setSelectedMetric({
+        id: node.id,
+        label: data.label,
+        value: data.value,
+        baseline: data.baseline,
+      });
+    }
   };
 
   return (
-    <div className="bg-[#111827] border border-neutral-800 rounded-lg p-6 shadow-sm">
+    <div className="bg-[#111827] border border-neutral-800 rounded-lg p-6 shadow-sm relative">
       <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
         <div>
           <h2 className="text-lg font-semibold text-white">What-If Causal Driver Sandbox</h2>
@@ -354,6 +421,19 @@ export function DriverCanvas() {
           </p>
         </div>
         <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".json"
+            onChange={handleImportScenario}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs transition-colors"
+          >
+            Import JSON
+          </button>
           <button
             onClick={handleReset}
             className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs transition-colors"
@@ -369,6 +449,13 @@ export function DriverCanvas() {
         </div>
       </div>
 
+      {cycleError && (
+        <div className="mt-3 p-3 bg-rose-950/60 border border-rose-800 rounded text-rose-300 text-xs flex justify-between items-center">
+          <span>{cycleError}</span>
+          <button onClick={() => setCycleError(null)} className="text-rose-400 hover:text-white ml-3 font-bold">✕</button>
+        </div>
+      )}
+
       {/* React Flow Interactive Canvas */}
       <div className="h-[520px] w-full mt-4 rounded border border-neutral-800 bg-[#0B0F19] overflow-hidden">
         <ReactFlow
@@ -376,6 +463,7 @@ export function DriverCanvas() {
           edges={edges}
           nodeTypes={nodeTypes}
           onConnect={onConnect}
+          onNodeClick={onNodeClick}
           fitView
           attributionPosition="bottom-left"
         >
@@ -383,6 +471,48 @@ export function DriverCanvas() {
           <Controls className="!bg-[#111827] !border-neutral-800 !text-neutral-300" />
         </ReactFlow>
       </div>
+
+      {/* Waterfall Drawer modal for clicked metric node */}
+      {selectedMetric && (
+        <div className="mt-4 p-4 bg-[#141E33] border border-blue-900/60 rounded-lg">
+          <div className="flex justify-between items-center border-b border-blue-900/40 pb-2">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Waterfall Attribution: {selectedMetric.label}</h3>
+              <p className="text-xs text-neutral-400">Baseline vs What-If Simulated Outcome</p>
+            </div>
+            <button
+              onClick={() => setSelectedMetric(null)}
+              className="text-xs text-neutral-400 hover:text-white px-2 py-1 bg-neutral-800 rounded"
+            >
+              Close
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mt-3 text-xs">
+            <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
+              <span className="text-neutral-400 block">Baseline Value</span>
+              <span className="text-sm font-mono font-semibold text-white mt-1 block">
+                ${selectedMetric.baseline.toLocaleString()}
+              </span>
+            </div>
+            <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
+              <span className="text-neutral-400 block">Simulated Value</span>
+              <span className="text-sm font-mono font-semibold text-blue-400 mt-1 block">
+                ${selectedMetric.value.toLocaleString()}
+              </span>
+            </div>
+            <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
+              <span className="text-neutral-400 block">Total Impact Delta</span>
+              <span className={`text-sm font-mono font-semibold mt-1 block ${
+                selectedMetric.value >= selectedMetric.baseline ? "text-emerald-400" : "text-rose-400"
+              }`}>
+                {selectedMetric.value >= selectedMetric.baseline ? "+" : ""}
+                ${(selectedMetric.value - selectedMetric.baseline).toLocaleString()} (
+                {(((selectedMetric.value - selectedMetric.baseline) / (selectedMetric.baseline || 1)) * 100).toFixed(1)}%)
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary KPI Strip */}
       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">

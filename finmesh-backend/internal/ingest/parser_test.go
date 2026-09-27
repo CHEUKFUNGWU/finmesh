@@ -127,3 +127,25 @@ V1,1,2026-01-15,1001,Cash,five-hundred,0.00
 		t.Error("expected error on invalid numeric amount, got nil")
 	}
 }
+
+func TestParseCSVFuzzyHeaders(t *testing.T) {
+	// ERP exported CSV with alternate headers: "voucher_no", "Post Date", "Acct Code", "Amount Dr", "Amount Cr"
+	csvData := `Voucher No,Line,Post Date,Acct Code,Account Name,Amount Dr,Amount Cr
+INV-9901,1,2026-02-15,1001,Cash,15000.00,0.00
+INV-9901,2,2026-02-15,6001,Product Sales,0.00,15000.00
+`
+	entries, tb, err := ParseCSV(strings.NewReader(csvData), "actual", "batch-fuzzy-01")
+	if err != nil {
+		t.Fatalf("unexpected error parsing fuzzy headers: %v", err)
+	}
+	if !tb.IsBalanced {
+		t.Errorf("expected balanced trial balance, got diff %v", tb.Difference)
+	}
+	if len(entries) != 2 {
+		t.Fatalf("expected 2 entries, got %d", len(entries))
+	}
+	if entries[0].VoucherID != "INV-9901" || entries[0].AccountCode != "1001" || entries[0].DebitAmount != 15000.00 {
+		t.Errorf("entry 0 parsed incorrectly: %+v", entries[0])
+	}
+}
+

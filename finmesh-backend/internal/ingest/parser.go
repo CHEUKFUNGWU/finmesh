@@ -166,18 +166,18 @@ func recordToJournalEntry(cols []string, colMap map[string]int, scenario, batchI
 		return ""
 	}
 
-	voucherID := getVal("voucher_id", "voucher", "凭证号", "id")
+	voucherID := getVal("voucher_id", "voucher", "voucher_no", "vch_id", "entry_id", "id", "凭证号")
 	if voucherID == "" {
 		return model.JournalEntry{}, fmt.Errorf("missing required voucher_id at row %d", rowIdx)
 	}
 
-	lineNoStr := getVal("line_no", "line", "行号")
+	lineNoStr := getVal("line_no", "line", "line_number", "行号")
 	lineNo, _ := strconv.Atoi(lineNoStr)
 	if lineNo == 0 {
 		lineNo = rowIdx
 	}
 
-	dateStr := getVal("posting_date", "date", "记账日期", "日期")
+	dateStr := getVal("posting_date", "post_date", "date", "transaction_date", "txn_date", "记账日期", "日期")
 	if dateStr == "" {
 		return model.JournalEntry{}, fmt.Errorf("missing required posting_date at row %d", rowIdx)
 	}
@@ -189,18 +189,18 @@ func recordToJournalEntry(cols []string, colMap map[string]int, scenario, batchI
 		}
 	}
 
-	accountCode := getVal("account_code", "code", "科目代码")
+	accountCode := getVal("account_code", "acct_code", "account", "acct", "code", "科目代码", "科目编码")
 	if accountCode == "" {
 		return model.JournalEntry{}, fmt.Errorf("missing required account_code at row %d", rowIdx)
 	}
-	accountName := getVal("account_name", "name", "科目名称")
-	accountCategory := getVal("account_category", "category", "科目分类")
+	accountName := getVal("account_name", "acct_name", "name", "account_description", "科目名称")
+	accountCategory := getVal("account_category", "category", "type", "科目分类", "科目类别")
 	if accountCategory == "" {
 		accountCategory = inferCategory(accountCode, accountName)
 	}
 
-	debitStr := getVal("debit_amount", "debit", "借方金额", "借方")
-	creditStr := getVal("credit_amount", "credit", "贷方金额", "贷方")
+	debitStr := getVal("debit_amount", "amount_dr", "debit", "dr", "借方金额", "借方")
+	creditStr := getVal("credit_amount", "amount_cr", "credit", "cr", "贷方金额", "贷方")
 
 	var debit, credit float64
 	if debitStr != "" {
@@ -218,8 +218,8 @@ func recordToJournalEntry(cols []string, colMap map[string]int, scenario, batchI
 		credit = c
 	}
 
-	dept := getVal("department_id", "department", "部门")
-	entity := getVal("entity_id", "entity", "法人主体", "公司")
+	dept := getVal("department_id", "dept_id", "department", "dept", "部门")
+	entity := getVal("entity_id", "entity", "company", "法人主体", "公司")
 
 	return model.JournalEntry{
 		VoucherID:       voucherID,

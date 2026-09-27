@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -203,12 +205,13 @@ func (f *FinMeshMCPServer) handleDrilldownLedger(ctx context.Context, req mcp.Ca
 
 	// If metric has a category mapping, add it as parameter
 	if metric, ok := f.catalog.GetMetric(metricName); ok {
-		if strings.Contains(metric.DefaultFilter, "account_category = '") {
-			parts := strings.Split(metric.DefaultFilter, "'")
-			if len(parts) >= 2 {
-				query += " AND account_category = ?"
-				args = append(args, parts[1])
-			}
+		cat := metric.Category
+		if cat != "" && cat != "Profitability" && cat != "KPI" {
+			query += " AND account_category = ?"
+			args = append(args, cat)
+		} else if match := regexp.MustCompile(`account_category\s*=\s*'([^']+)'`).FindStringSubmatch(metric.DefaultFilter); len(match) > 1 {
+			query += " AND account_category = ?"
+			args = append(args, match[1])
 		}
 	}
 	query += fmt.Sprintf(" ORDER BY posting_date DESC, voucher_id LIMIT %d", limit)
@@ -313,24 +316,45 @@ func parsePeriod(period string) (startDate, endDate string, err error) {
 	switch {
 	case strings.HasSuffix(period, "-Q1"):
 		year := strings.TrimSuffix(period, "-Q1")
+		if !regexp.MustCompile(`^\d{4}$`).MatchString(year) {
+			return "", "", fmt.Errorf("invalid year in period: %s", period)
+		}
 		return year + "-01-01", year + "-03-31", nil
 	case strings.HasSuffix(period, "-Q2"):
 		year := strings.TrimSuffix(period, "-Q2")
+		if !regexp.MustCompile(`^\d{4}$`).MatchString(year) {
+			return "", "", fmt.Errorf("invalid year in period: %s", period)
+		}
 		return year + "-04-01", year + "-06-30", nil
 	case strings.HasSuffix(period, "-Q3"):
 		year := strings.TrimSuffix(period, "-Q3")
+		if !regexp.MustCompile(`^\d{4}$`).MatchString(year) {
+			return "", "", fmt.Errorf("invalid year in period: %s", period)
+		}
 		return year + "-07-01", year + "-09-30", nil
 	case strings.HasSuffix(period, "-Q4"):
 		year := strings.TrimSuffix(period, "-Q4")
+		if !regexp.MustCompile(`^\d{4}$`).MatchString(year) {
+			return "", "", fmt.Errorf("invalid year in period: %s", period)
+		}
 		return year + "-10-01", year + "-12-31", nil
 	case len(period) == 7 && period[4] == '-': // YYYY-MM
 		parts := strings.Split(period, "-")
-		year := parts[0]
-		month := parts[1]
-		return fmt.Sprintf("%s-%s-01", year, month), fmt.Sprintf("%s-%s-28", year, month), nil
+		y, errY := strconv.Atoi(parts[0])
+		m, errM := strconv.Atoi(parts[1])
+		if errY != nil || errM != nil || m < 1 || m > 12 {
+			return "", "", fmt.Errorf("invalid YYYY-MM period: %s", period)
+		}
+		// Day 0 of next month is the last calendar day of month m
+		lastDay := time.Date(y, time.Month(m+1), 0, 0, 0, 0, 0, time.UTC).Day()
+		return fmt.Sprintf("%04d-%02d-01", y, m), fmt.Sprintf("%04d-%02d-%02d", y, m, lastDay), nil
 	case len(period) == 4: // YYYY
-		return period + "-01-01", period + "-12-31", nil
+		y, errY := strconv.Atoi(period)
+		if errY != nil {
+			return "", "", fmt.Errorf("invalid YYYY period: %s", period)
+		}
+		return fmt.Sprintf("%04d-01-01", y), fmt.Sprintf("%04d-12-31", y), nil
 	default:
-		return "2026-01-01", "2026-12-31", nil
+		return "", "", fmt.Errorf("unrecognized period format '%s' (expected YYYY-Q1, YYYY-MM, or YYYY)", period)
 	}
 }

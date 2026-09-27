@@ -76,3 +76,22 @@ type VarianceBreakdown struct {
 	CostVariance    float64 `json:"cost_variance"`
 	Unexplained     float64 `json:"unexplained"`
 }
+
+// PVMInputs allows passing operational driver factors for exact Price-Volume-Mix calculation.
+type PVMInputs struct {
+	BaseVolume   float64 `json:"base_volume"`    // Q_baseline
+	CompVolume   float64 `json:"comp_volume"`    // Q_comparison
+	BasePrice    float64 `json:"base_price"`     // P_baseline
+	CompPrice    float64 `json:"comp_price"`     // P_comparison
+	BaseUnitCost float64 `json:"base_unit_cost"` // C_baseline
+	CompUnitCost float64 `json:"comp_unit_cost"` // C_comparison
+}
+
+// MonthlyPivotRow represents a row in the monthly P&L pivot table produced by DuckDB native PIVOT.
+type MonthlyPivotRow struct {
+	AccountCategory string             `json:"account_category"`
+	Months          map[string]float64 `json:"months"` // "Jan", "Feb", ... -> value
+	Total           float64            `json:"total"`
+}
+
+

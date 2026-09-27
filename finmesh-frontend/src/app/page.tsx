@@ -4,10 +4,70 @@ import React, { useState } from "react";
 import { PnLTable } from "@/components/report/PnLTable";
 import { DriverCanvas } from "@/components/canvas/DriverCanvas";
 import { AuditDrawer } from "@/components/audit/AuditDrawer";
+import { VarianceMemo } from "@/components/memo/VarianceMemo";
 
 export default function WorkspacePage() {
-  const [activeTab, setActiveTab] = useState<"report" | "canvas">("report");
+  const [activeTab, setActiveTab] = useState<"report" | "canvas" | "memo">("report");
   const [selectedAudit, setSelectedAudit] = useState<any>(null);
+
+  const handleSelectToken = (metricId: string, sqlHash?: string) => {
+    const meta: Record<string, { displayName: string; category: string; actual: number; budget: number; formula: string }> = {
+      revenue: {
+        displayName: "Revenue (营业收入)",
+        category: "Revenue",
+        actual: 1250000,
+        budget: 1375000,
+        formula: "SUM(credit_amount) - SUM(debit_amount)",
+      },
+      cogs: {
+        displayName: "Cost of Goods Sold (营业成本)",
+        category: "COGS",
+        actual: 525000,
+        budget: 555000,
+        formula: "SUM(debit_amount) - SUM(credit_amount)",
+      },
+      gross_profit: {
+        displayName: "Gross Profit (毛利)",
+        category: "Profitability",
+        actual: 725000,
+        budget: 820000,
+        formula: "revenue - cogs",
+      },
+      opex: {
+        displayName: "Operating Expenses (研发与营销费用)",
+        category: "Opex",
+        actual: 410000,
+        budget: 450000,
+        formula: "SUM(debit_amount) - SUM(credit_amount)",
+      },
+      net_income: {
+        displayName: "Net Income (净利润)",
+        category: "Profitability",
+        actual: 315000,
+        budget: 370000,
+        formula: "gross_profit - opex",
+      },
+    };
+
+    const item = meta[metricId] || {
+      displayName: metricId.toUpperCase(),
+      category: "General",
+      actual: 100000,
+      budget: 100000,
+      formula: "SUM(amount)",
+    };
+
+    setSelectedAudit({
+      metricName: metricId,
+      displayName: item.displayName,
+      category: item.category,
+      actual: item.actual,
+      budget: item.budget,
+      variance: item.actual - item.budget,
+      formula: item.formula,
+      sqlQuery: `SELECT voucher_id, line_no, posting_date, account_code, debit_amount, credit_amount\nFROM fact_general_ledger\nWHERE scenario = 'actual' AND posting_date BETWEEN '2026-01-01' AND '2026-03-31'\n  AND account_category = '${item.category}'\nORDER BY posting_date DESC\nLIMIT 20; -- [Token Hash: #${sqlHash || "a7f8e32c"}]`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -57,6 +117,16 @@ export default function WorkspacePage() {
         >
           What-If Causal Sandbox
         </button>
+        <button
+          onClick={() => setActiveTab("memo")}
+          className={`px-3.5 py-1.5 rounded text-xs font-medium transition-colors ${
+            activeTab === "memo"
+              ? "bg-neutral-800 text-white border border-neutral-700"
+              : "text-neutral-400 hover:text-white"
+          }`}
+        >
+          Autonomous Variance Memo
+        </button>
       </div>
 
       {/* Main Content Area */}
@@ -66,6 +136,10 @@ export default function WorkspacePage() {
 
       {activeTab === "canvas" && (
         <DriverCanvas />
+      )}
+
+      {activeTab === "memo" && (
+        <VarianceMemo onTokenClick={handleSelectToken} />
       )}
 
       {/* Zero-Hallucination Audit Drawer */}
