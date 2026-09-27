@@ -13,6 +13,7 @@
 | `REQ-0003` | React Flow 驱动因果沙盘画布与 What-If 模拟 / React Flow Causal Driver Canvas & What-If | `SRC-0001` | 画布推演 / Canvas | defined | P0 | Frontend | v0.1 | `REQ-0002` | [05-requirements/req-0003-whatif-driver-canvas/](../05-requirements/req-0003-whatif-driver-canvas/) |
 | `REQ-0004` | 自主 Finance BP 方差分析 Memo 与数字穿透审计 / Autonomous Variance Memo & Audit Drill-down | `SRC-0001` | AI 智能 / AI BP | defined | P0 | AI / Fullstack | v0.1 | `REQ-0002` | [05-requirements/req-0004-ai-variance-memo/](../05-requirements/req-0004-ai-variance-memo/) |
 | `REQ-0005` | Go 原生 Financial MCP Server 核心工具集 / Go Native Financial MCP Server Core Tools | `SRC-0001` | 开放中枢 / MCP Hub | defined | P0 | Backend | v0.1 | `REQ-0002` | [05-requirements/req-0005-go-mcp-server/](../05-requirements/req-0005-go-mcp-server/) |
+| `REQ-0006` | 多行业财务 BP 预置指标包与沙盘推演模板库 / Multi-Industry FBP Pre-built Metric Packs & Canvas Templates | `SRC-0022` | 预置领域资产 / Industry Packs | candidate | P1 | PM / Content | v0.2 | `REQ-0002`, `REQ-0003` | 待立项 / Pending |
 
 ---
 

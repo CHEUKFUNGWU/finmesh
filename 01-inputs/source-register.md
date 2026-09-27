@@ -29,6 +29,7 @@
 | `SRC-0019` | 2026-09-17 | 现代高质感SaaS与企业级UI/UX范式 / Modern SaaS & EIS UI/UX Paradigms | 设计研究报告 / Design Research | 行业调研 / Research | `01-inputs/2026-09-17-modern-saas-enterprise-ui-ux-design-paradigms.md` | Bento Grid、Cmd+K、数据表格交互规范 / Bento Grid, Cmd+K, high-density data table UX | 已归档，确立产品交互基准 / Archived; establishes UX baseline |
 | `SRC-0020` | 2026-09-17 | 开源技术选型与许可证合规矩阵 / Open-Source License Compliance & Tech Selection | 技术选型报告 / Tech Assessment | 技术评估 / Assessment | `01-inputs/2026-09-17-open-source-license-compliance-and-tech-selection.md` | 商业许可证边界、AGPLv3 隔离、ECharts 与 Valkey 选型 / Commercial licensing, AGPLv3 isolation, ECharts & Valkey | 已归档，确立选型边界 / Archived; establishes stack boundaries |
 | `SRC-0021` | 2026-09-17 | Excel、PPT与Canvas生态库选型与边界 / Excel, PPT & Canvas Libraries Research | 技术选型报告 / Tech Assessment | 技术评估 / Assessment | `01-inputs/2026-09-17-excel-ppt-canvas-libraries-research.md` | excelize 流式读写、PptxGenJS 原生生成、Marp 与 React Flow / excelize streaming, PptxGenJS, Marp & React Flow | 已归档，确立渲染引擎方案 / Archived; establishes rendering stack |
+| `SRC-0022` | 2026-09-27 | 跨行业财务BP日常工作与核心职责调研报告 / Cross-Industry Finance BP Research | 行业深度调研 / Industry Research | 行业调研 / Research | `01-inputs/2026-09-27-cross-industry-finance-bp-research.md` | 六大行业（快消、食饮、鞋服、电商、SaaS、物流）FBP 职责底座、量化公式、业务节律与系统依赖 / FBP foundations, formulas, cadences & system dependencies across 6 industries | 已归档，作为多行业场景输入基线 / Archived as multi-industry domain baseline |
 
 ---
 
