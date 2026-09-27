@@ -302,7 +302,15 @@ export function DriverCanvas() {
   ]);
 
   const [cycleError, setCycleError] = useState<string | null>(null);
-  const [selectedMetric, setSelectedMetric] = useState<{ id: string; label: string; value: number; baseline: number } | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<{
+    id: string;
+    label: string;
+    category: string;
+    baseline: number;
+    simulated: number;
+    delta: number;
+    waterfall: { name: string; impact: number; note: string }[];
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // DFS/Reachability cycle prevention: verifies that target cannot already reach source
@@ -397,16 +405,52 @@ export function DriverCanvas() {
     setChurnDelta(0);
     setMarketingSpend(0);
     setCycleError(null);
+    setSelectedMetric(null);
   };
 
   const onNodeClick = (_: React.MouseEvent, node: Node) => {
     if (node.type === "metricNode") {
-      const data = node.data as { label: string; value: number; baseline: number };
+      const data = node.data as {
+        label?: string;
+        category?: string;
+        baseline?: number;
+        simulated?: number;
+        delta?: number;
+      };
+
+      const baseline = data.baseline ?? 0;
+      const simulated = data.simulated ?? baseline;
+      const delta = data.delta ?? (simulated - baseline);
+
+      // Compute marginal upstream waterfall contributions per REQ-0003 §4.3
+      const waterfall: { name: string; impact: number; note: string }[] = [];
+      if (node.id === "metric-revenue") {
+        const priceImpact = baseRevenue * (priceLift / 100);
+        const churnImpact = -baseRevenue * (churnDelta / 100);
+        waterfall.push({ name: "Pricing Lift Driver", impact: priceImpact, note: `${priceLift >= 0 ? "+" : ""}${priceLift}% rate adjustment` });
+        waterfall.push({ name: "Churn Rate Delta Driver", impact: churnImpact, note: `${churnDelta >= 0 ? "+" : ""}${churnDelta}% client churn` });
+      } else if (node.id === "metric-cogs") {
+        const mktImpact = baseCOGS * (marketingSpend / 100) * 0.3;
+        waterfall.push({ name: "Marketing Cloud Scale Factor", impact: mktImpact, note: `30% infra elastic demand elasticity` });
+      } else if (node.id === "metric-opex") {
+        const mktImpact = baseOpex * (marketingSpend / 100) * 0.5;
+        waterfall.push({ name: "Marketing Discretionary Spend", impact: mktImpact, note: `Direct demand generation budget` });
+      } else if (node.id === "metric-gp") {
+        waterfall.push({ name: "Revenue Expansion / Contraction", impact: simRevenue - baseRevenue, note: `Topline revenue pass-through` });
+        waterfall.push({ name: "Direct Cost Variance", impact: -(simCOGS - baseCOGS), note: `COGS efficiency offset` });
+      } else if (node.id === "metric-net") {
+        waterfall.push({ name: "Gross Profit Conversion", impact: simGrossProfit - (baseRevenue - baseCOGS), note: `Operating margin contribution` });
+        waterfall.push({ name: "Overhead & Opex Variance", impact: -(simOpex - baseOpex), note: `SG&A and R&D impact` });
+      }
+
       setSelectedMetric({
         id: node.id,
-        label: data.label,
-        value: data.value,
-        baseline: data.baseline,
+        label: data.label || node.id,
+        category: data.category || "General",
+        baseline,
+        simulated,
+        delta,
+        waterfall,
       });
     }
   };
@@ -491,26 +535,48 @@ export function DriverCanvas() {
             <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
               <span className="text-neutral-400 block">Baseline Value</span>
               <span className="text-sm font-mono font-semibold text-white mt-1 block">
-                ${selectedMetric.baseline.toLocaleString()}
+                ${(selectedMetric.baseline ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
               <span className="text-neutral-400 block">Simulated Value</span>
               <span className="text-sm font-mono font-semibold text-blue-400 mt-1 block">
-                ${selectedMetric.value.toLocaleString()}
+                ${(selectedMetric.simulated ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
               <span className="text-neutral-400 block">Total Impact Delta</span>
               <span className={`text-sm font-mono font-semibold mt-1 block ${
-                selectedMetric.value >= selectedMetric.baseline ? "text-emerald-400" : "text-rose-400"
+                (selectedMetric.simulated ?? 0) >= (selectedMetric.baseline ?? 0) ? "text-emerald-400" : "text-rose-400"
               }`}>
-                {selectedMetric.value >= selectedMetric.baseline ? "+" : ""}
-                ${(selectedMetric.value - selectedMetric.baseline).toLocaleString()} (
-                {(((selectedMetric.value - selectedMetric.baseline) / (selectedMetric.baseline || 1)) * 100).toFixed(1)}%)
+                {(selectedMetric.simulated ?? 0) >= (selectedMetric.baseline ?? 0) ? "+" : ""}
+                ${((selectedMetric.simulated ?? 0) - (selectedMetric.baseline ?? 0)).toLocaleString()} (
+                {((((selectedMetric.simulated ?? 0) - (selectedMetric.baseline ?? 0)) / (selectedMetric.baseline || 1)) * 100).toFixed(1)}%)
               </span>
             </div>
           </div>
+
+          {/* Upstream Marginal Driver Waterfall Breakdown per REQ-0003 §4.3 */}
+          {selectedMetric.waterfall.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-blue-900/30">
+              <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                Upstream Driver Marginal Attribution / 边际动因拆解
+              </div>
+              <div className="space-y-1.5">
+                {selectedMetric.waterfall.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center p-2 rounded bg-neutral-900/60 border border-neutral-800/80 text-xs">
+                    <div>
+                      <span className="text-white font-medium">{item.name}</span>
+                      <span className="text-neutral-500 text-[11px] ml-2">({item.note})</span>
+                    </div>
+                    <span className={`font-mono font-semibold ${item.impact >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      {item.impact >= 0 ? "+" : ""}${Math.round(item.impact).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

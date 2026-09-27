@@ -1,11 +1,15 @@
 package gateway
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -160,9 +164,45 @@ func (g *ModelGateway) GenerateVarianceMemo(ctx context.Context, req MemoRequest
 
 	content := sb.String()
 
+	// If remote API endpoint is configured, attempt live HTTP dispatch per REQ-0004 §4.2
+	if g.config.BaseURL != "" && g.config.APIKey != "" {
+		systemPrompt := "You are an autonomous Finance BP synthesizing an executive variance memo. You MUST NOT invent, estimate, or modify any financial numbers. Every single variance delta, percentage, or currency figure must be wrapped in a <MetricToken metricId=\"...\" value=\"...\" displayValue=\"...\" sqlHash=\"...\" category=\"...\" /> component exactly as provided in the facts context."
+		factsJSON, _ := json.Marshal(map[string]interface{}{
+			"period":        req.Period,
+			"baseline":      req.BaselineScenario,
+			"comparison":    req.CompScenario,
+			"metric_tokens": tokens,
+			"pvm_details":   pvmList,
+		})
+		if remoteContent, err := g.dispatchHTTP(ctx, systemPrompt, string(factsJSON)); err == nil && remoteContent != "" {
+			// Ensure remote content passes zero-arithmetic-hallucination verification
+			if valid := g.verifyTokens(remoteContent, tokens); valid {
+				content = remoteContent
+			}
+		}
+	}
+
 	// 3. Verify zero arithmetic hallucination: Ensure all embedded token values correspond to factual results
+	if !g.verifyTokens(content, tokens) {
+		return nil, fmt.Errorf("hallucination guard exception: one or more tokens in generated memo do not match verified factual results")
+	}
+
+	return &MemoResponse{
+		Title:        title,
+		Period:       req.Period,
+		GeneratedAt:  time.Now(),
+		Content:      content,
+		MetricTokens: tokens,
+		PVMDetails:   pvmList,
+	}, nil
+}
+
+func (g *ModelGateway) verifyTokens(content string, tokens []TokenRef) bool {
 	tokenRegex := regexp.MustCompile(`<MetricToken\s+metricId="([^"]+)"\s+value="([^"]+)"`)
 	matches := tokenRegex.FindAllStringSubmatch(content, -1)
+	if len(matches) == 0 {
+		return false
+	}
 	for _, match := range matches {
 		metricID := match[1]
 		valStr := match[2]
@@ -174,16 +214,105 @@ func (g *ModelGateway) GenerateVarianceMemo(ctx context.Context, req MemoRequest
 			}
 		}
 		if !found {
-			return nil, fmt.Errorf("hallucination guard exception: token %s with value %s not found in verified facts", metricID, valStr)
+			return false
 		}
 	}
+	return true
+}
 
-	return &MemoResponse{
-		Title:        title,
-		Period:       req.Period,
-		GeneratedAt:  time.Now(),
-		Content:      content,
-		MetricTokens: tokens,
-		PVMDetails:   pvmList,
-	}, nil
+// dispatchHTTP sends live HTTP completions to OpenAI/Anthropic/vLLM endpoints per REQ-0004 §4.2.
+func (g *ModelGateway) dispatchHTTP(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
+	if g.config.BaseURL == "" {
+		return "", fmt.Errorf("no base_url configured for provider %s", g.config.Provider)
+	}
+
+	client := &http.Client{Timeout: 8 * time.Second}
+
+	switch g.config.Provider {
+	case ProviderAnthropicCompatible:
+		reqBody := map[string]interface{}{
+			"model":      g.config.Model,
+			"max_tokens": 2048,
+			"system":     systemPrompt,
+			"messages": []map[string]string{
+				{"role": "user", "content": userPrompt},
+			},
+		}
+		jsonBytes, err := json.Marshal(reqBody)
+		if err != nil {
+			return "", err
+		}
+		endpoint := strings.TrimRight(g.config.BaseURL, "/") + "/v1/messages"
+		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(jsonBytes))
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("x-api-key", g.config.APIKey)
+		req.Header.Set("anthropic-version", "2023-06-01")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		if resp.StatusCode >= 400 {
+			return "", fmt.Errorf("anthropic api error (status %d): %s", resp.StatusCode, string(bodyBytes))
+		}
+
+		var anthropicResp struct {
+			Content []struct {
+				Text string `json:"text"`
+			} `json:"content"`
+		}
+		if err := json.Unmarshal(bodyBytes, &anthropicResp); err != nil || len(anthropicResp.Content) == 0 {
+			return "", fmt.Errorf("invalid anthropic response: %v", err)
+		}
+		return anthropicResp.Content[0].Text, nil
+
+	default: // ProviderOpenAICompatible, ProviderResponseAPI, ProviderSelfHosted
+		reqBody := map[string]interface{}{
+			"model": g.config.Model,
+			"messages": []map[string]string{
+				{"role": "system", "content": systemPrompt},
+				{"role": "user", "content": userPrompt},
+			},
+		}
+		jsonBytes, err := json.Marshal(reqBody)
+		if err != nil {
+			return "", err
+		}
+		endpoint := strings.TrimRight(g.config.BaseURL, "/") + "/v1/chat/completions"
+		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(jsonBytes))
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		if g.config.APIKey != "" {
+			req.Header.Set("Authorization", "Bearer "+g.config.APIKey)
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		if resp.StatusCode >= 400 {
+			return "", fmt.Errorf("chat completion api error (status %d): %s", resp.StatusCode, string(bodyBytes))
+		}
+
+		var openAIResp struct {
+			Choices []struct {
+				Message struct {
+					Content string `json:"content"`
+				} `json:"message"`
+			} `json:"choices"`
+		}
+		if err := json.Unmarshal(bodyBytes, &openAIResp); err != nil || len(openAIResp.Choices) == 0 {
+			return "", fmt.Errorf("invalid chat completion response: %v", err)
+		}
+		return openAIResp.Choices[0].Message.Content, nil
+	}
 }

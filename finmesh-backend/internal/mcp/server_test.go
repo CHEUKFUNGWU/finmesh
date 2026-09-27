@@ -101,6 +101,27 @@ func TestMCPServerTools(t *testing.T) {
 		t.Fatalf("simulate tool returned error: %v", resSim.Content)
 	}
 
+	// Test 3b: Simulate What-If with native map object
+	reqSimObj := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "simulate_whatif",
+			Arguments: map[string]interface{}{
+				"scenario_id": "actual",
+				"adjustments": map[string]interface{}{
+					"price_lift": 0.05,
+					"churn_rate": 0.01,
+				},
+			},
+		},
+	}
+	resSimObj, err := s.handleSimulateWhatIf(ctx, reqSimObj)
+	if err != nil {
+		t.Fatalf("simulate tool object error: %v", err)
+	}
+	if resSimObj.IsError {
+		t.Fatalf("simulate tool object returned error: %v", resSimObj.Content)
+	}
+
 	// Test 4: Drilldown ledger
 	reqDrill := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{

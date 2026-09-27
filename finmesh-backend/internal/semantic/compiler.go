@@ -7,6 +7,7 @@ import (
 	"math"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/model"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/storage"
@@ -17,10 +18,11 @@ var (
 	validDateRegex       = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 )
 
-// Compiler compiles semantic metric queries into deterministic DuckDB SQL.
+// Compiler compiles semantic metric queries into deterministic DuckDB SQL with in-memory caching.
 type Compiler struct {
 	catalog *Catalog
 	db      *storage.DB
+	cache   sync.Map // cacheKey string -> *model.MetricResult
 }
 
 // NewCompiler instantiates a compiler tied to a catalog and storage engine.
@@ -29,6 +31,14 @@ func NewCompiler(catalog *Catalog, db *storage.DB) *Compiler {
 		catalog: catalog,
 		db:      db,
 	}
+}
+
+// InvalidateCache invalidates in-memory cached metric results per REQ-0002 §4.3.
+func (c *Compiler) InvalidateCache() {
+	c.cache.Range(func(key, value any) bool {
+		c.cache.Delete(key)
+		return true
+	})
 }
 
 // CompileSQL generates deterministic SQL for a given metric query, assembling CTEs for derived metrics.
@@ -170,8 +180,15 @@ func replaceMetricIdentifiers(formula string, deps []string) string {
 	return res
 }
 
-// ExecuteMetric runs the compiled SQL on DuckDB and returns the calculated result.
+// ExecuteMetric runs the compiled SQL on DuckDB and returns the calculated result, leveraging cache.
 func (c *Compiler) ExecuteMetric(ctx context.Context, q model.MetricQuery) (*model.MetricResult, error) {
+	cacheKey := fmt.Sprintf("%s:%s:%s:%s:%s", q.MetricName, q.Scenario, q.StartDate, q.EndDate, strings.Join(q.Dimensions, ","))
+	if cached, ok := c.cache.Load(cacheKey); ok {
+		if res, valid := cached.(*model.MetricResult); valid {
+			return res, nil
+		}
+	}
+
 	metric, ok := c.catalog.GetMetric(q.MetricName)
 	if !ok {
 		return nil, fmt.Errorf("metric '%s' not registered in catalog", q.MetricName)
@@ -193,12 +210,14 @@ func (c *Compiler) ExecuteMetric(ctx context.Context, q model.MetricQuery) (*mod
 		resVal = math.Round(val.Float64*100) / 100
 	}
 
-	return &model.MetricResult{
+	res := &model.MetricResult{
 		MetricName:  q.MetricName,
 		DisplayName: metric.DisplayName,
 		Value:       resVal,
 		SQLQuery:    querySQL,
-	}, nil
+	}
+	c.cache.Store(cacheKey, res)
+	return res, nil
 }
 
 // CalculatePVMDecomposition calculates algebraic Price-Volume-Mix decomposition adhering strictly to REQ-0004 §4.1.
@@ -258,18 +277,21 @@ func (c *Compiler) ExecuteVariance(ctx context.Context, metricName, baselineScen
 
 	totalVariance := math.Round((compRes.Value-baseRes.Value)*100) / 100
 
-	// Check if operational driver quantities are recorded in fact_operational_metrics
-	var baseVol, compVol, basePrice, compPrice sql.NullFloat64
-	_ = c.db.QueryRowContext(ctx, `
-		SELECT 
-			MAX(CASE WHEN scenario = ? AND metric_name = 'volume' THEN metric_value END),
-			MAX(CASE WHEN scenario = ? AND metric_name = 'volume' THEN metric_value END),
-			MAX(CASE WHEN scenario = ? AND metric_name = 'unit_price' THEN metric_value END),
-			MAX(CASE WHEN scenario = ? AND metric_name = 'unit_price' THEN metric_value END)
-		FROM fact_operational_metrics
-	`, baselineScenario, compScenario, baselineScenario, compScenario).Scan(&baseVol, &compVol, &basePrice, &compPrice)
+	// Check if operational driver quantities are recorded in fact_operational_metrics for this metric
+	driverVol := fmt.Sprintf("%s_volume", metricName)
+	driverPrice := fmt.Sprintf("%s_unit_price", metricName)
 
-	if baseVol.Valid && compVol.Valid && basePrice.Valid && compPrice.Valid && baseVol.Float64 > 0 {
+	var baseVol, compVol, basePrice, compPrice sql.NullFloat64
+	errScan := c.db.QueryRowContext(ctx, `
+		SELECT 
+			MAX(CASE WHEN scenario = ? AND (metric_name = ? OR metric_name = 'volume') THEN metric_value END),
+			MAX(CASE WHEN scenario = ? AND (metric_name = ? OR metric_name = 'volume') THEN metric_value END),
+			MAX(CASE WHEN scenario = ? AND (metric_name = ? OR metric_name = 'unit_price') THEN metric_value END),
+			MAX(CASE WHEN scenario = ? AND (metric_name = ? OR metric_name = 'unit_price') THEN metric_value END)
+		FROM fact_operational_metrics
+	`, baselineScenario, driverVol, compScenario, driverVol, baselineScenario, driverPrice, compScenario, driverPrice).Scan(&baseVol, &compVol, &basePrice, &compPrice)
+
+	if errScan == nil && baseVol.Valid && compVol.Valid && basePrice.Valid && compPrice.Valid && baseVol.Float64 > 0 {
 		return CalculatePVMDecomposition(metricName, model.PVMInputs{
 			BaseVolume: baseVol.Float64,
 			CompVolume: compVol.Float64,

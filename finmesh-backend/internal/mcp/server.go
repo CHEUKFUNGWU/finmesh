@@ -18,6 +18,11 @@ import (
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/storage"
 )
 
+var (
+	categoryRegex = regexp.MustCompile(`account_category\s*=\s*'([^']+)'`)
+	yearRegex     = regexp.MustCompile(`^\d{4}$`)
+)
+
 // FinMeshMCPServer manages and exposes financial computation tools over MCP.
 type FinMeshMCPServer struct {
 	server   *server.MCPServer
@@ -209,7 +214,7 @@ func (f *FinMeshMCPServer) handleDrilldownLedger(ctx context.Context, req mcp.Ca
 		if cat != "" && cat != "Profitability" && cat != "KPI" {
 			query += " AND account_category = ?"
 			args = append(args, cat)
-		} else if match := regexp.MustCompile(`account_category\s*=\s*'([^']+)'`).FindStringSubmatch(metric.DefaultFilter); len(match) > 1 {
+		} else if match := categoryRegex.FindStringSubmatch(metric.DefaultFilter); len(match) > 1 {
 			query += " AND account_category = ?"
 			args = append(args, match[1])
 		}
@@ -261,22 +266,50 @@ func (f *FinMeshMCPServer) handleSimulateWhatIf(ctx context.Context, req mcp.Cal
 	if err != nil {
 		return mcp.NewToolResultError("missing required parameter: scenario_id"), nil
 	}
-	adjustmentsJSON, err := req.RequireString("adjustments")
-	if err != nil {
-		return mcp.NewToolResultError("missing required parameter: adjustments"), nil
-	}
-
+	// Support both object map and JSON string for adjustments
 	var adjustments map[string]float64
-	if err := json.Unmarshal([]byte(adjustmentsJSON), &adjustments); err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("invalid adjustments JSON format: %v", err)), nil
+	var adjRaw any
+	if argsMap, ok := req.Params.Arguments.(map[string]any); ok {
+		adjRaw = argsMap["adjustments"]
+	} else if argsMap, ok := req.Params.Arguments.(map[string]interface{}); ok {
+		adjRaw = argsMap["adjustments"]
+	}
+	if adjRaw == nil {
+		if s, err := req.RequireString("adjustments"); err == nil {
+			adjRaw = s
+		} else {
+			return mcp.NewToolResultError("missing required parameter: adjustments"), nil
+		}
+	}
+	switch v := adjRaw.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &adjustments); err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("invalid adjustments JSON format: %v", err)), nil
+		}
+	case map[string]interface{}:
+		adjustments = make(map[string]float64)
+		for key, val := range v {
+			if fVal, ok := val.(float64); ok {
+				adjustments[key] = fVal
+			}
+		}
+	default:
+		bytes, _ := json.Marshal(v)
+		if err := json.Unmarshal(bytes, &adjustments); err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("unsupported adjustments type: %T", v)), nil
+		}
 	}
 
-	// Query baseline actuals
-	revRes, err := f.compiler.ExecuteMetric(ctx, model.MetricQuery{MetricName: "revenue", Scenario: "actual"})
+	// Query baseline numbers (support scenario_id or fallback to actual)
+	baseScenario := "actual"
+	if scenarioID == "actual" || scenarioID == "budget" || scenarioID == "forecast" {
+		baseScenario = scenarioID
+	}
+	revRes, err := f.compiler.ExecuteMetric(ctx, model.MetricQuery{MetricName: "revenue", Scenario: baseScenario})
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("failed to query baseline revenue: %v", err)), nil
 	}
-	cogsRes, _ := f.compiler.ExecuteMetric(ctx, model.MetricQuery{MetricName: "cogs", Scenario: "actual"})
+	cogsRes, _ := f.compiler.ExecuteMetric(ctx, model.MetricQuery{MetricName: "cogs", Scenario: baseScenario})
 
 	baseRev := revRes.Value
 	baseCOGS := 0.0

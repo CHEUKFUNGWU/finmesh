@@ -246,5 +246,16 @@ func TestCompilerExecuteMetric(t *testing.T) {
 	if pvmRes.CostVariance != -2400.0 {
 		t.Errorf("expected cost variance -2400, got %v", pvmRes.CostVariance)
 	}
+
+	// Test In-Memory Cache and Invalidation (REQ-0002 §4.3)
+	cachedRes, err := compiler.ExecuteMetric(ctx, model.MetricQuery{
+		MetricName: "revenue",
+		Scenario:   "actual",
+	})
+	if err != nil || cachedRes.Value != 100000.0 {
+		t.Fatalf("expected cached revenue 100000, got %v (err: %v)", cachedRes, err)
+	}
+	compiler.InvalidateCache()
 }
+
 
