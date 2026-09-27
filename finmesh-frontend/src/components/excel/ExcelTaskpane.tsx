@@ -87,13 +87,87 @@ export function ExcelTaskpane() {
     return rows;
   });
 
+  const [drilldownData, setDrilldownData] = useState<{
+    metricName: string;
+    period: string;
+    scenario: string;
+    cteSql?: string;
+    sqlHash?: string;
+    vouchers?: Array<{
+      voucher_id: string;
+      line_no: number;
+      posting_date: string;
+      account_code: string;
+      account_name: string;
+      account_category: string;
+      debit_amount: number;
+      credit_amount: number;
+    }>;
+    isLoading: boolean;
+    error?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const cell = grid[selectedCell.r]?.[selectedCell.c];
+    if (!cell || !cell.isFormula || !cell.raw.startsWith("=")) {
+      setDrilldownData(null);
+      return;
+    }
+
+    const match = cell.raw.match(/=FINMESH\.METRIC\(\s*["']([^"']+)["']\s*(?:,\s*["']([^"']+)["'])?(?:,\s*["']([^"']+)["'])?(?:,\s*["']([^"']+)["'])?\s*\)/i);
+    if (!match) {
+      setDrilldownData(null);
+      return;
+    }
+
+    const metric = match[1];
+    const period = match[2] || "2026-Q1";
+    const scenario = match[3] || "actual";
+
+    let isMounted = true;
+    setDrilldownData({ metricName: metric, period, scenario, isLoading: true });
+
+    const apiUrl = process.env.NEXT_PUBLIC_FINMESH_API_URL || "http://localhost:8080";
+    fetch(`${apiUrl}/api/v1/metrics/drilldown?metric_name=${encodeURIComponent(metric)}&period=${encodeURIComponent(period)}&scenario=${encodeURIComponent(scenario)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!isMounted) return;
+        setDrilldownData({
+          metricName: metric,
+          period,
+          scenario,
+          cteSql: data.cte_sql,
+          sqlHash: data.sql_hash || cell.sqlHash,
+          vouchers: data.vouchers || [],
+          isLoading: false,
+        });
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setDrilldownData((prev) => prev ? {
+          ...prev,
+          isLoading: false,
+          error: "Backend drilldown offline (showing simulated query plan)",
+          cteSql: `SELECT voucher_id, line_no, posting_date, account_code, debit_amount, credit_amount\nFROM fact_general_ledger\nWHERE scenario = '${scenario}'\nORDER BY posting_date DESC\nLIMIT 20;`,
+          sqlHash: cell.sqlHash || "a7f8e32c",
+        } : null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCell, grid]);
+
   const parseAndEvaluateFormula = async (r: number, c: number, formulaStr: string) => {
-    // Regex for =FINMESH.METRIC("metric", "period", "scenario")
-    const match = formulaStr.match(/=FINMESH\.METRIC\(\s*"([^"]+)"\s*(?:,\s*"([^"]+)")?(?:,\s*"([^"]+)")?\s*\)/i);
+    // Regex for =FINMESH.METRIC("metric", ["period"], ["scenario"], ["department"])
+    const match = formulaStr.match(/=FINMESH\.METRIC\(\s*["']([^"']+)["']\s*(?:,\s*["']([^"']+)["'])?(?:,\s*["']([^"']+)["'])?(?:,\s*["']([^"']+)["'])?\s*\)/i);
     if (!match) {
       setGrid((prev) => {
         const next = [...prev.map((row) => [...row])];
-        next[r][c] = { raw: formulaStr, evaluated: "#VALUE!", isFormula: true, status: "error", error: "Syntax: =FINMESH.METRIC(\"name\", \"period\", [\"scenario\"])" };
+        next[r][c] = { raw: formulaStr, evaluated: "#VALUE!", isFormula: true, status: "error", error: "Syntax: =FINMESH.METRIC(\"name\", [\"period\"], [\"scenario\"], [\"department\"])" };
         return next;
       });
       return;
@@ -102,6 +176,7 @@ export function ExcelTaskpane() {
     const metricName = match[1];
     const period = match[2] || "2026-Q1";
     const scenario = match[3] || "actual";
+    const department = match[4] || "";
 
     setGrid((prev) => {
       const next = [...prev.map((row) => [...row])];
@@ -110,7 +185,7 @@ export function ExcelTaskpane() {
     });
 
     const start = performance.now();
-    const res: FormulaResult = await functionEvaluator.evaluate(metricName, period, scenario);
+    const res: FormulaResult = await functionEvaluator.evaluate(metricName, period, scenario, department);
     const latency = performance.now() - start;
 
     setLastLatencyMs(Math.round(latency * 10) / 10);
@@ -428,7 +503,7 @@ export function ExcelTaskpane() {
                   Active Formula Lineage ({String.fromCharCode(65 + selectedCell.c)}{selectedCell.r + 1}):
                 </div>
 
-                <div className="bg-[#111827] p-3 rounded border border-neutral-800 space-y-2 font-mono text-xs">
+                <div className="bg-[#111827] p-3 rounded border border-neutral-800 space-y-2.5 font-mono text-xs">
                   <div>
                     <span className="text-neutral-500">Raw Formula:</span>
                     <p className="text-white break-all">{currentCellData.raw}</p>
@@ -439,14 +514,46 @@ export function ExcelTaskpane() {
                   </div>
                   <div>
                     <span className="text-neutral-500">Audit Token Hash:</span>
-                    <p className="text-blue-400 font-bold">#{currentCellData.sqlHash || "a7f8e32c"}</p>
+                    <p className="text-blue-400 font-bold">#{drilldownData?.sqlHash || currentCellData.sqlHash || "a7f8e32c"}</p>
                   </div>
                   <div>
-                    <span className="text-neutral-500">Execution Plan:</span>
-                    <p className="text-neutral-400 text-[10px] bg-[#070A10] p-2 rounded border border-neutral-900 overflow-x-auto">
-                      SELECT SUM(credit_amount) - SUM(debit_amount) FROM fact_general_ledger WHERE scenario = &apos;actual&apos;
+                    <span className="text-neutral-500">DuckDB Execution Plan:</span>
+                    <p className="text-neutral-400 text-[10px] bg-[#070A10] p-2 rounded border border-neutral-900 overflow-x-auto whitespace-pre-wrap max-h-24">
+                      {drilldownData?.cteSql || "SELECT SUM(credit_amount) - SUM(debit_amount) FROM fact_general_ledger WHERE scenario = 'actual'"}
                     </p>
                   </div>
+
+                  {drilldownData?.isLoading && (
+                    <div className="text-[11px] text-blue-400 py-1">Querying DuckDB drilldown vouchers...</div>
+                  )}
+
+                  {drilldownData?.vouchers && drilldownData.vouchers.length > 0 && (
+                    <div>
+                      <span className="text-neutral-500 block mb-1">Backing Ledger Entries ({drilldownData.vouchers.length}):</span>
+                      <div className="max-h-36 overflow-y-auto rounded border border-neutral-800 text-[10px]">
+                        <table className="w-full text-left">
+                          <thead className="bg-[#0B0F19] text-neutral-400 sticky top-0">
+                            <tr>
+                              <th className="p-1">Voucher</th>
+                              <th className="p-1">Account</th>
+                              <th className="p-1 text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {drilldownData.vouchers.map((v, idx) => (
+                              <tr key={idx} className="border-t border-neutral-850 hover:bg-neutral-800/40">
+                                <td className="p-1 text-neutral-300">{v.voucher_id}</td>
+                                <td className="p-1 text-neutral-400">{v.account_name}</td>
+                                <td className="p-1 text-right font-mono text-emerald-400">
+                                  ${(v.credit_amount > 0 ? v.credit_amount : v.debit_amount).toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

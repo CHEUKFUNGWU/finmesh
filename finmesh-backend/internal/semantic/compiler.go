@@ -164,6 +164,12 @@ func (c *Compiler) buildWhereClause(defaultFilter string, q model.MetricQuery) s
 	if q.EndDate != "" {
 		whereClauses = append(whereClauses, fmt.Sprintf("posting_date <= '%s'", q.EndDate))
 	}
+	for _, dim := range q.Dimensions {
+		dim = strings.TrimSpace(dim)
+		if dim != "" && validIdentifierRegex.MatchString(dim) {
+			whereClauses = append(whereClauses, fmt.Sprintf("department_id = '%s'", dim))
+		}
+	}
 
 	if len(whereClauses) == 0 {
 		return ""

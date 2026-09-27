@@ -91,43 +91,17 @@ class CustomFunctionBatchEvaluator {
           });
         }
       });
-    } catch {
-      // Fallback: Client-side local deterministic evaluation for demo/offline resilience
-      this.evaluateLocalFallback(currentBatch);
-    }
-  }
-
-  private evaluateLocalFallback(batch: FormulaQuery[]) {
-    const mockCatalog: Record<string, { actual: number; budget: number; formula: string; hash: string }> = {
-      revenue: { actual: 180000, budget: 200000, formula: "SUM(credit_amount) - SUM(debit_amount)", hash: "a7f8e32c" },
-      cogs: { actual: 36000, budget: 30000, formula: "SUM(debit_amount) - SUM(credit_amount)", hash: "b2c9d1e4" },
-      gross_profit: { actual: 144000, budget: 170000, formula: "revenue - cogs", hash: "e5d4c3b2" },
-      opex: { actual: 64000, budget: 60000, formula: "SUM(debit_amount) - SUM(credit_amount)", hash: "f1a2b3c4" },
-      net_income: { actual: 80000, budget: 110000, formula: "gross_profit - opex", hash: "99e8d7c6" },
-    };
-
-    batch.forEach((q) => {
-      const metricKey = q.metricName.toLowerCase().trim();
-      const item = mockCatalog[metricKey];
-      if (!item) {
-        q.resolve({
+    } catch (err: any) {
+      // Zero-Hallucination Invariant: Never fabricate audited numbers or hashes when backend is unreachable
+      currentBatch.forEach((item) => {
+        item.resolve({
           value: 0,
           status: "error",
-          error: "#FINMESH.INVALID_METRIC!",
-          executionMs: 0.8,
+          error: `#FINMESH.NETWORK_ERR: Backend unreachable (${err?.message || "connection refused"})`,
+          executionMs: 0.0,
         });
-        return;
-      }
-
-      const val = q.scenario?.toLowerCase() === "budget" ? item.budget : item.actual;
-      q.resolve({
-        value: val,
-        formula: item.formula,
-        sqlHash: item.hash,
-        status: "ok",
-        executionMs: 1.4,
       });
-    });
+    }
   }
 }
 

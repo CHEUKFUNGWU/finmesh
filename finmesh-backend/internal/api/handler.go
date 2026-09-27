@@ -16,6 +16,7 @@ import (
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/model"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/semantic"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/storage"
+	"github.com/CHEUKFUNGWU/finmesh/backend/internal/util"
 )
 
 var (
@@ -139,7 +140,7 @@ func (h *APIHandler) handleMetricsBatch(w http.ResponseWriter, r *http.Request) 
 		var sDate, eDate string
 		if q.Period != "" {
 			var err error
-			sDate, eDate, err = parsePeriod(q.Period)
+			sDate, eDate, err = util.ParsePeriod(q.Period)
 			if err != nil {
 				item.Status = "error"
 				item.Error = fmt.Sprintf("#FINMESH.INVALID_PERIOD: %v", err)
@@ -298,6 +299,26 @@ func (h *APIHandler) handleScenarioOverride(w http.ResponseWriter, r *http.Reque
 		simRunway = 99.9 // Cash flow positive
 	}
 
+	// 3. Persist the WhatIf scenario into DuckDB with balanced journal entries
+	h.db.ExecContext(r.Context(), "DELETE FROM fact_general_ledger WHERE scenario = ?", scenarioName)
+	now := time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC)
+	batchID := "excel_override_" + strconv.FormatInt(time.Now().Unix(), 10)
+	scenarioEntries := []model.JournalEntry{
+		// Revenue (Debit Cash, Credit Revenue)
+		{VoucherID: "XLS-REV-01", LineNo: 1, PostingDate: now, AccountCode: "1001", AccountName: "Bank Cash", AccountCategory: "Asset", DebitAmount: math.Round(simRev*100) / 100, CreditAmount: 0.0, Scenario: scenarioName, BatchID: batchID},
+		{VoucherID: "XLS-REV-01", LineNo: 2, PostingDate: now, AccountCode: "6001", AccountName: "SaaS ARR", AccountCategory: "Revenue", DebitAmount: 0.0, CreditAmount: math.Round(simRev*100) / 100, Scenario: scenarioName, BatchID: batchID},
+		// COGS (Debit COGS, Credit Cash)
+		{VoucherID: "XLS-COG-01", LineNo: 1, PostingDate: now, AccountCode: "6401", AccountName: "Cloud Infrastructure", AccountCategory: "COGS", DebitAmount: math.Round(simCOGS*100) / 100, CreditAmount: 0.0, Scenario: scenarioName, BatchID: batchID},
+		{VoucherID: "XLS-COG-01", LineNo: 2, PostingDate: now, AccountCode: "1001", AccountName: "Bank Cash", AccountCategory: "Asset", DebitAmount: 0.0, CreditAmount: math.Round(simCOGS*100) / 100, Scenario: scenarioName, BatchID: batchID},
+		// Opex (Debit Opex, Credit Cash)
+		{VoucherID: "XLS-OPX-01", LineNo: 1, PostingDate: now, AccountCode: "6603", AccountName: "Operating Expenses", AccountCategory: "Opex", DebitAmount: math.Round(simOpex*100) / 100, CreditAmount: 0.0, Scenario: scenarioName, BatchID: batchID},
+		{VoucherID: "XLS-OPX-01", LineNo: 2, PostingDate: now, AccountCode: "1001", AccountName: "Bank Cash", AccountCategory: "Asset", DebitAmount: 0.0, CreditAmount: math.Round(simOpex*100) / 100, Scenario: scenarioName, BatchID: batchID},
+	}
+	if err := h.db.InsertEntries(r.Context(), scenarioEntries); err != nil {
+		log.Printf("[API Override] Warning: failed to persist scenario to DuckDB: %v", err)
+	}
+	h.compiler.InvalidateCache()
+
 	resp := ScenarioOverrideResponse{
 		ScenarioName:            scenarioName,
 		BaselineRevenue:         baseRev,
@@ -341,7 +362,7 @@ func (h *APIHandler) handleMetricsDrilldown(w http.ResponseWriter, r *http.Reque
 	var startDate, endDate string
 	if period != "" {
 		var err error
-		startDate, endDate, err = parsePeriod(period)
+		startDate, endDate, err = util.ParsePeriod(period)
 		if err != nil {
 			http.Error(w, fmt.Sprintf(`{"error":"invalid period: %v"}`, err), http.StatusBadRequest)
 			return
@@ -424,51 +445,4 @@ func (h *APIHandler) handleMetricsDrilldown(w http.ResponseWriter, r *http.Reque
 		"entries":     entries,
 		"row_count":   len(entries),
 	})
-}
-
-func parsePeriod(period string) (startDate, endDate string, err error) {
-	period = strings.TrimSpace(strings.ToUpper(period))
-	switch {
-	case strings.HasSuffix(period, "-Q1"):
-		year := strings.TrimSuffix(period, "-Q1")
-		if !yearRegex.MatchString(year) {
-			return "", "", fmt.Errorf("invalid year in period: %s", period)
-		}
-		return year + "-01-01", year + "-03-31", nil
-	case strings.HasSuffix(period, "-Q2"):
-		year := strings.TrimSuffix(period, "-Q2")
-		if !yearRegex.MatchString(year) {
-			return "", "", fmt.Errorf("invalid year in period: %s", period)
-		}
-		return year + "-04-01", year + "-06-30", nil
-	case strings.HasSuffix(period, "-Q3"):
-		year := strings.TrimSuffix(period, "-Q3")
-		if !yearRegex.MatchString(year) {
-			return "", "", fmt.Errorf("invalid year in period: %s", period)
-		}
-		return year + "-07-01", year + "-09-30", nil
-	case strings.HasSuffix(period, "-Q4"):
-		year := strings.TrimSuffix(period, "-Q4")
-		if !yearRegex.MatchString(year) {
-			return "", "", fmt.Errorf("invalid year in period: %s", period)
-		}
-		return year + "-10-01", year + "-12-31", nil
-	case len(period) == 7 && period[4] == '-': // YYYY-MM
-		parts := strings.Split(period, "-")
-		y, errY := strconv.Atoi(parts[0])
-		m, errM := strconv.Atoi(parts[1])
-		if errY != nil || errM != nil || m < 1 || m > 12 {
-			return "", "", fmt.Errorf("invalid YYYY-MM period: %s", period)
-		}
-		lastDay := time.Date(y, time.Month(m+1), 0, 0, 0, 0, 0, time.UTC).Day()
-		return fmt.Sprintf("%04d-%02d-01", y, m), fmt.Sprintf("%04d-%02d-%02d", y, m, lastDay), nil
-	case len(period) == 4: // YYYY
-		y, errY := strconv.Atoi(period)
-		if errY != nil {
-			return "", "", fmt.Errorf("invalid YYYY period: %s", period)
-		}
-		return fmt.Sprintf("%04d-01-01", y), fmt.Sprintf("%04d-12-31", y), nil
-	default:
-		return "", "", fmt.Errorf("unrecognized period format '%s' (expected YYYY-Q1, YYYY-MM, or YYYY)", period)
-	}
 }

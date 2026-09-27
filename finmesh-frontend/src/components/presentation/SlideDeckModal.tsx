@@ -108,7 +108,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
                 <div className="p-4 rounded-lg bg-[#111827] border border-neutral-800">
                   <div className="text-xs text-neutral-400">Total ARR / Revenue</div>
-                  <div className="text-2xl font-bold text-white mt-1">$180,000</div>
+                  <div className="text-2xl font-bold text-white mt-1">${(data.kpis.arr).toLocaleString()}</div>
                   <div className="text-xs text-rose-400 mt-1">{data.kpis.arrVariance}</div>
                 </div>
                 <div className="p-4 rounded-lg bg-[#111827] border border-neutral-800">
