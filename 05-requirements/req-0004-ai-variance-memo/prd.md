@@ -13,7 +13,7 @@
 - **关联来源**：`SRC-0001`（访谈轮次 5、8、10）、`SRC-0010`（模型中立网关架构）、`SRC-0014`（DuckDB 确定性明细穿透）
 - **所属模块**：AI 智能 (AI Financial BP)
 - **目标版本**：`v0.1`
-- **生命周期状态**：`defined`（以 [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md) 为准）
+- **生命周期状态唯一维护位置**：[04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **前置依赖**：`REQ-0002`（依赖语义指标引擎提供的 PVM 方差拆解与底层事实表数据）
 - **责任人**：AI / Fullstack
 
@@ -21,9 +21,11 @@
 
 ### 2. 业务背景与用户痛点
 在财务分析与经营汇报场景中：
-1. **方差分析机械繁重**：每月 Actual vs Budget 差异分析中，分析师需要耗费大量时间手工做量价利（PVM: Price-Volume-Mix）拆解，并编写长篇管理分析备忘录（Financial Memo）。
-2. **AI 生成财务报告的信任危机**：传统大模型生成的经营分析往往“文采飞扬但数字漂移”，模型经常在正文中编造未经核实的百分比或因果归因，CFO 与审计师绝不敢直接采纳。
-3. **数字不可穿透回溯**：报告中的关键结论（如“云资源支出环比异常激增 \$42,000”）往往无法直接点击反查原始记账凭证，排查原因需在多个 ERP 与数仓系统之间来回倒腾。
+1. `[已观察]` **方差分析机械繁重**：每月 Actual vs Budget 差异分析中，分析师需要耗费大量时间手工做量价利（PVM: Price-Volume-Mix）拆解，并编写长篇管理分析备忘录（来源：`SRC-0001`）。
+2. `[已观察]` **AI 生成财务报告的信任危机**：传统大模型直接生成经营分析经常编造未经核实的数字与因果归因，CFO 与审计师绝不敢直接采纳（来源：`SRC-0001`）。
+3. `[推断]` **“算文分离”架构价值**：由 Go + DuckDB 确定性执行 PVM 分解与指标计算，将事实数据输入模型中立网关生成专业述评，可实现零算术幻觉。
+4. `[待确认]` **外部模型合规边界**：各行业客户将脱敏后的汇总指标发送至云端 API 的合规审批门槛（本地私有化部署 vLLM 可作为兜底方案）。
+5. `[未覆盖]` **多智能体博弈辩论**：本需求专注确定性 PVM 方差述评与明细穿透，复杂的跨部门博弈智能体群留待后续版本。
 
 **目标**：构建“算文分离”的自主 Finance BP 智能体。由 Go 后端通过 DuckDB 确定性执行 PVM 数学方差分解与指标计算，将经过校验的结构化数据输入模型中立网关生成专业述评。正文中的所有数字均封装为可交互穿透 Token，支持一键调出 SQL 与原始记账凭证。
 
@@ -113,7 +115,7 @@ AI 生成的 Markdown 文本中，数值均使用特定标记包裹，前端富�
 - **Originating Sources**: `SRC-0001` (Interview rounds 5, 8, 10), `SRC-0010` (Protocol-neutral model gateway architecture), `SRC-0014` (DuckDB deterministic ledger drill-down)
 - **Module**: AI Financial BP
 - **Target Release**: `v0.1`
-- **Lifecycle Status**: `defined` (governed in [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md))
+- **Lifecycle Status Source of Truth**: [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **Prerequisites**: `REQ-0002` (Depends on Semantic Metric Engine for PVM variance figures and fact ledger data)
 - **Owner**: AI / Fullstack
 
@@ -121,9 +123,11 @@ AI 生成的 Markdown 文本中，数值均使用特定标记包裹，前端富�
 
 ### 2. Business Context & User Pain Points
 In financial reporting and operational reviews:
-1. **Tedious Manual Variance Commentary**: In monthly Actual vs Budget reviews, financial analysts spend days manually calculating Price-Volume-Mix (PVM) splits and writing exhaustive variance memos.
-2. **Trust Deficit with AI-Generated Financial Reports**: Traditional LLM-generated reports produce polished prose plagued by arithmetic hallucinations, inventing unverified percentages and causal assertions that CFOs and auditors cannot accept.
-3. **Opaque and Disconnected Transaction Lineage**: Key claims in executive summaries (e.g., "Cloud hosting expenditure spiked \$42,000 MoM") cannot be clicked to inspect underlying GL journal vouchers without cross-system spelunking across ERPs.
+1. `[Observed]` **Tedious Manual Variance Commentary**: In monthly Actual vs Budget reviews, financial analysts spend days manually calculating Price-Volume-Mix (PVM) splits and writing exhaustive variance memos (Source: `SRC-0001`).
+2. `[Observed]` **Trust Deficit with AI-Generated Financial Reports**: Traditional LLM-generated reports produce polished prose plagued by arithmetic hallucinations, inventing unverified percentages and causal assertions that CFOs and auditors cannot accept (Source: `SRC-0001`).
+3. `[Inferred]` **Separation of Compute and Narrative Value**: Executing deterministic PVM variance decompositions and aggregations via Go + DuckDB, feeding verified facts into a protocol-neutral model gateway eliminates arithmetic hallucination.
+4. `[To-Confirm]` **Compliance Boundary for External APIs**: Compliance approval threshold for sending scrubbed summary financial aggregates to external model APIs vs mandatory self-hosted vLLM deployment.
+5. `[Uncovered]` **Multi-Agent Deliberation Game**: This requirement focuses on deterministic PVM variance commentary and ledger drill-down; complex multi-stakeholder debate agents are deferred to subsequent releases.
 
 **Goal**: Establish a "Separation of Compute and Narrative" architecture. The Go backend computes deterministic PVM variance decompositions and aggregations via DuckDB. These validated figures are dispatched to a protocol-neutral gateway for professional narrative synthesis. All figures are wrapped in interactive tokens enabling one-click drill-down to the underlying SQL and journal vouchers.
 

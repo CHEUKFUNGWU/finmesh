@@ -51,6 +51,7 @@ func TestMCPServerTools(t *testing.T) {
 			Arguments: map[string]interface{}{
 				"metric_name": "revenue",
 				"scenario":    "actual",
+				"period":      "2026-Q1",
 			},
 		},
 	}
@@ -67,9 +68,10 @@ func TestMCPServerTools(t *testing.T) {
 		Params: mcp.CallToolParams{
 			Name: "explain_variance",
 			Arguments: map[string]interface{}{
-				"metric_name":         "revenue",
-				"baseline_scenario":   "budget",
-				"comparison_scenario": "actual",
+				"metric_name": "revenue",
+				"baseline":    "budget",
+				"comparison":  "actual",
+				"period":      "2026-Q1",
 			},
 		},
 	}
@@ -86,9 +88,8 @@ func TestMCPServerTools(t *testing.T) {
 		Params: mcp.CallToolParams{
 			Name: "simulate_whatif",
 			Arguments: map[string]interface{}{
-				"driver_name":   "price_lift",
-				"delta_percent": 0.10,
-				"base_revenue":  100000.0,
+				"scenario_id": "sim-q1-growth",
+				"adjustments": `{"price_lift": 0.10, "churn_rate": -0.02}`,
 			},
 		},
 	}
@@ -105,8 +106,10 @@ func TestMCPServerTools(t *testing.T) {
 		Params: mcp.CallToolParams{
 			Name: "drilldown_transaction_ledger",
 			Arguments: map[string]interface{}{
-				"scenario": "actual",
-				"limit":    5,
+				"metric_name": "revenue",
+				"period":      "2026-Q1",
+				"scenario":    "actual",
+				"limit":       5,
 			},
 		},
 	}

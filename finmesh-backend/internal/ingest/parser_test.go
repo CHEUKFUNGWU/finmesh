@@ -13,6 +13,7 @@ func TestValidateTrialBalance(t *testing.T) {
 		entries    []model.JournalEntry
 		isBalanced bool
 		diff       float64
+		unbalanced []string
 	}{
 		{
 			name: "balanced entry pair",
@@ -22,6 +23,7 @@ func TestValidateTrialBalance(t *testing.T) {
 			},
 			isBalanced: true,
 			diff:       0.0,
+			unbalanced: nil,
 		},
 		{
 			name: "unbalanced entry pair",
@@ -31,6 +33,7 @@ func TestValidateTrialBalance(t *testing.T) {
 			},
 			isBalanced: false,
 			diff:       50.0,
+			unbalanced: []string{"V2"},
 		},
 		{
 			name: "multi-currency cents balance rounding",
@@ -41,6 +44,7 @@ func TestValidateTrialBalance(t *testing.T) {
 			},
 			isBalanced: true,
 			diff:       0.0,
+			unbalanced: nil,
 		},
 	}
 
@@ -52,6 +56,9 @@ func TestValidateTrialBalance(t *testing.T) {
 			}
 			if res.Difference != tt.diff {
 				t.Errorf("expected difference=%v, got %v", tt.diff, res.Difference)
+			}
+			if len(res.UnbalancedVouchers) != len(tt.unbalanced) {
+				t.Errorf("expected %d unbalanced vouchers, got %d", len(tt.unbalanced), len(res.UnbalancedVouchers))
 			}
 		})
 	}
@@ -89,5 +96,34 @@ VCH-002,2,2026-01-15,6001,Revenue,Revenue,0.00,48000.00
 	}
 	if tb.IsBalanced {
 		t.Fatal("expected isBalanced to be false")
+	}
+	if len(tb.UnbalancedVouchers) != 1 || tb.UnbalancedVouchers[0] != "VCH-002" {
+		t.Errorf("expected unbalanced voucher VCH-002, got %v", tb.UnbalancedVouchers)
+	}
+}
+
+func TestParseCSVValidationErrors(t *testing.T) {
+	// Missing voucher_id
+	badVoucher := `voucher_id,line_no,posting_date,account_code,account_name,debit_amount,credit_amount
+,1,2026-01-15,1001,Cash,500.00,0.00
+`
+	if _, _, err := ParseCSV(strings.NewReader(badVoucher), "actual", "b1"); err == nil {
+		t.Error("expected error on missing voucher_id, got nil")
+	}
+
+	// Invalid date format
+	badDate := `voucher_id,line_no,posting_date,account_code,account_name,debit_amount,credit_amount
+V1,1,invalid-date,1001,Cash,500.00,0.00
+`
+	if _, _, err := ParseCSV(strings.NewReader(badDate), "actual", "b1"); err == nil {
+		t.Error("expected error on invalid date, got nil")
+	}
+
+	// Invalid numeric amount
+	badAmount := `voucher_id,line_no,posting_date,account_code,account_name,debit_amount,credit_amount
+V1,1,2026-01-15,1001,Cash,five-hundred,0.00
+`
+	if _, _, err := ParseCSV(strings.NewReader(badAmount), "actual", "b1"); err == nil {
+		t.Error("expected error on invalid numeric amount, got nil")
 	}
 }

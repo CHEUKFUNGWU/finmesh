@@ -176,15 +176,32 @@ func TestCompilerExecuteMetric(t *testing.T) {
 		t.Errorf("expected revenue 100000, got %v", revRes.Value)
 	}
 
-	// Test COGS
-	cogsRes, err := compiler.ExecuteMetric(ctx, model.MetricQuery{
-		MetricName: "cogs",
+	// Test Derived Metric: gross_profit = revenue - cogs
+	cat.RegisterMetric(model.MetricDefinition{
+		Name:        "gross_profit",
+		DisplayName: "Gross Profit",
+		Category:    "Profitability",
+		Formula:     "revenue - cogs",
+		DependsOn:   []string{"revenue", "cogs"},
+	})
+
+	gpRes, err := compiler.ExecuteMetric(ctx, model.MetricQuery{
+		MetricName: "gross_profit",
 		Scenario:   "actual",
 	})
 	if err != nil {
-		t.Fatalf("failed to query cogs: %v", err)
+		t.Fatalf("failed to query derived gross_profit: %v", err)
 	}
-	if cogsRes.Value != 25000.0 {
-		t.Errorf("expected cogs 25000, got %v", cogsRes.Value)
+	if gpRes.Value != 75000.0 {
+		t.Errorf("expected gross_profit 75000, got %v", gpRes.Value)
+	}
+
+	// Test Malicious Input Rejection
+	_, err = compiler.ExecuteMetric(ctx, model.MetricQuery{
+		MetricName: "revenue",
+		Scenario:   "actual'; DROP TABLE fact_general_ledger; --",
+	})
+	if err == nil {
+		t.Error("expected error on malicious scenario input, got nil")
 	}
 }

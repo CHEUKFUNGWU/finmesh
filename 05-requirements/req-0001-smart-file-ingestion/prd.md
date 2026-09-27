@@ -13,16 +13,18 @@
 - **关联来源**：`SRC-0001`（访谈轮次 4）、`SRC-0021`（excelize 流式读写）、`SRC-0013`（DuckDB Appender 驱动集成）、`SRC-0002`（会计科目树规范）
 - **所属模块**：数据接入 (Data Ingestion)
 - **目标版本**：`v0.1`
-- **生命周期状态**：`defined`（以 [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md) 为准）
+- **生命周期状态唯一维护位置**：[04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **责任人**：PM / Backend Engineer
 
 ---
 
 ### 2. 业务背景与用户痛点
 在成长期中型企业与高成长出海 SMB 中，财务团队日常面临异构系统的“表格沼泽”：
-1. **核算系统口径分散**：企业可能同时使用 QuickBooks、NetSuite、金蝶或独立银行流水，表格字段名称、日期格式（YYYY-MM-DD vs MM/DD/YYYY）、正负借贷符号千差万别。
-2. **手工整理耗时易错**：分析师每月关账需花费数天人肉清洗合并跨部门 Excel，极易损坏公式且缺乏入库校验。
-3. **缺乏试算平衡防御**：传统系统常在导入后才发现借贷不平或缺失关键凭证号，排查成本极高。
+1. `[已观察]` **核算系统口径分散**：企业可能同时使用 QuickBooks、NetSuite、金蝶或独立银行流水，表格字段名称、日期格式（YYYY-MM-DD vs MM/DD/YYYY）、正负借贷符号千差万别（来源：`SRC-0001`）。
+2. `[已观察]` **手工整理耗时易错**：分析师每月关账需花费数天人肉清洗合并跨部门 Excel，极易损坏公式且缺乏入库校验（来源：`SRC-0001`）。
+3. `[推断]` **缺乏试算平衡防御**：传统系统常在导入后才发现借贷不平或缺失关键凭证号，前置试算平衡可消除 95% 以上的入库后对账损耗。
+4. `[待确认]` **非标表头变体分布**：不同行业客户 Excel 导出文件中多层复合表头与合并单元格的覆盖率，需在首批试点样本中验证。
+5. `[未覆盖]` **实时银企直连 API**：本需求聚焦通用文件批量导入，实时银联/银行流水自动对账由后续版本覆盖。
 
 **目标**：提供免配置/低配置的拖拽导入管道，利用 Go 后端 `excelize` 流式解析，在进入 DuckDB 事实表前完成 100% 试算平衡校验，实现 10 分钟快速冷启动。
 
@@ -83,16 +85,18 @@
 - **Associated Sources**: `SRC-0001` (Grill-me Round 4), `SRC-0021` (excelize streaming), `SRC-0013` (DuckDB Appender Integration), `SRC-0002` (COA specs)
 - **Module**: Data Ingestion
 - **Target Release**: `v0.1`
-- **Lifecycle Status**: `defined` (canonical in [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md))
+- **Lifecycle Status Source of Truth**: [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **Owners**: PM / Backend Engineer
 
 ---
 
 ### 2. Business Context & Problem Statement
 In scaling Mid-Market companies and high-growth SMBs, finance teams face heterogeneous spreadsheet swamps:
-1. **Fragmented Accounting Schemas**: Disparate ERPs (QuickBooks, NetSuite, local accounting software) export files with conflicting headers, date formats (YYYY-MM-DD vs MM/DD/YYYY), and signed amounts.
-2. **Error-Prone Manual Wrangling**: Analysts spend days manually normalizing and reconciling spreadsheets during month-end close, risking broken formulas and corrupted audit trails.
-3. **Lack of Automated Trial Balance Defense**: Legacy tools discover unbalanced ledgers only after ingestion, generating substantial reconciliation costs.
+1. `[Observed]` **Fragmented Accounting Schemas**: Disparate ERPs (QuickBooks, NetSuite, local accounting software) export files with conflicting headers, date formats (YYYY-MM-DD vs MM/DD/YYYY), and signed amounts (Source: `SRC-0001`).
+2. `[Observed]` **Error-Prone Manual Wrangling**: Analysts spend days manually normalizing and reconciling spreadsheets during month-end close, risking broken formulas and corrupted audit trails (Source: `SRC-0001`).
+3. `[Inferred]` **Lack of Automated Trial Balance Defense**: Legacy tools discover unbalanced ledgers only after ingestion; pre-flight verification eliminates >95% of post-ingestion reconciliation debt.
+4. `[To-Confirm]` **Multi-tier Header Distribution**: Proportion of client Excel files utilizing multi-row merged headers to be verified in pilot sample datasets.
+5. `[Uncovered]` **Real-time Bank Feed Direct APIs**: This requirement addresses batch file ingestion; direct bank feed synchronization is scheduled for future milestones.
 
 **Goal**: Deliver a zero/low-configuration drag-and-drop ingestion pipeline in Go utilizing `excelize` streaming reader to enforce 100% trial balance verification before persisting into DuckDB fact tables.
 

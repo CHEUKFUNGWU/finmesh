@@ -13,7 +13,7 @@
 - **关联来源**：`SRC-0001`（访谈轮次 6、8、10）、`SRC-0009`（Model Context Protocol Go SDK）、`SRC-0014`（DuckDB 列式查询优化）
 - **所属模块**：开放中枢 (MCP Hub & Integrations)
 - **目标版本**：`v0.1`
-- **生命周期状态**：`defined`（以 [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md) 为准）
+- **生命周期状态唯一维护位置**：[04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **前置依赖**：`REQ-0002`（依赖语义指标引擎提供指标目录与计算接口）
 - **责任人**：Eng (Backend / Systems)
 
@@ -21,9 +21,11 @@
 
 ### 2. 业务背景与用户痛点
 在金融企业多智能体（Multi-Agent）与协作生态中：
-1. **财务数据割裂成信息孤岛**：外部 AI 工具（如 Claude Desktop、Cursor、企业私有智能体群）无法安全、标准地调阅企业内部财务指标与报表。
-2. **非标 API 增加集成成本**：每接入一个新的外部 Agent 平台，都需要定制开发专属适配器，缺乏行业标准协议支撑。
-3. **运行时笨重与内存占用大**：许多 Python/Node 编写的 MCP 服务冷启动时间长、常驻内存过高（数百 MB），难以在边缘或资源受限环境中高并发运行。
+1. `[已观察]` **财务数据割裂成信息孤岛**：外部 AI 工具（如 Claude Desktop、Cursor、企业私有智能体群）无法安全、标准地调阅企业内部财务指标与报表（来源：`SRC-0001`）。
+2. `[已观察]` **非标 API 增加集成成本**：每接入一个新的外部 Agent 平台，都需要定制开发专属适配器，缺乏行业标准协议支撑（来源：`SRC-0001`）。
+3. `[推断]` **运行时笨重与内存占用大**：许多 Python/Node 编写的 MCP 服务冷启动时间长、常驻内存过高（数百 MB），Go 原生架构常驻内存 $< 30\text{MB}$，可大幅降低多租户部署成本。
+4. `[待确认]` **云端分布式鉴权标准**：SSE 模式下各第三方 Agent 调度框架对 mTLS 与 OAuth2 Bearer Token 的协议兼容深度。
+5. `[未覆盖]` **双向反向工具调用 (Bi-directional Tool Callback)**：本期仅支持 Agent 单向调用 FinMesh 提供的只读与仿真工具，暂不支持 FinMesh 反向调用宿主系统能力。
 
 **目标**：基于 Go 原生开发轻量级 Financial MCP Server（基于 `mark3labs/mcp-go`）。支持标准 `stdio` 与 `sse` 双通信传输模式，向外部 Agent 开放标准化财务工具集（指标查询、方差解释、凭证穿透与推演重算），内存占用 $< 30\text{MB}$，查询耗时 $< 20\text{ms}$。
 
@@ -141,7 +143,7 @@ var CoreTools = []ToolDefinition{
 - **Originating Sources**: `SRC-0001` (Interview rounds 6, 8, 10), `SRC-0009` (Model Context Protocol Go SDK), `SRC-0014` (DuckDB columnar query performance)
 - **Module**: MCP Hub & Integrations
 - **Target Release**: `v0.1`
-- **Lifecycle Status**: `defined` (governed in [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md))
+- **Lifecycle Status Source of Truth**: [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **Prerequisites**: `REQ-0002` (Depends on Semantic Metric Engine for metric catalog and query interfaces)
 - **Owner**: Eng (Backend / Systems)
 
@@ -149,9 +151,11 @@ var CoreTools = []ToolDefinition{
 
 ### 2. Business Context & User Pain Points
 In enterprise multi-agent workflows and collaborative AI ecosystems:
-1. **Siloed Financial Data**: External AI agents (such as Claude Desktop, Cursor, and enterprise multi-agent teams) lack standardized, secure mechanisms to access internal financial metrics.
-2. **Integration Burden from Bespoke APIs**: Each new agent platform demands custom API connectors, creating maintenance overhead in the absence of open protocols.
-3. **Bulky Runtime Footprint**: Python/Node-based MCP servers suffer from slow cold-starts and high memory consumption ($> 200\text{MB}$), making them ill-suited for resource-constrained edge deployments.
+1. `[Observed]` **Siloed Financial Data**: External AI agents (such as Claude Desktop, Cursor, and enterprise multi-agent teams) lack standardized, secure mechanisms to access internal financial metrics (Source: `SRC-0001`).
+2. `[Observed]` **Integration Burden from Bespoke APIs**: Each new agent platform demands custom API connectors, creating maintenance overhead in the absence of open protocols (Source: `SRC-0001`).
+3. `[Inferred]` **Bulky Runtime Footprint**: Python/Node-based MCP servers suffer from slow cold-starts and high memory consumption ($> 200\text{MB}$); a Go native server runs under $30\text{MB}$ RAM, drastically lowering deployment footprint.
+4. `[To-Confirm]` **Distributed Authentication Compatibility**: Extent of mTLS vs Bearer token support across heterogenous Agent client frameworks in SSE mode.
+5. `[Uncovered]` **Bi-directional Tool Callbacks**: This milestone covers agent-to-server tool execution; reverse tool callbacks into host environments are out of scope.
 
 **Goal**: Build a lightweight Go native Financial MCP Server using `mark3labs/mcp-go`. Supporting both `stdio` and `sse` transport modes, it exposes standardized financial tools (metric queries, variance explanation, transaction drill-down, and what-if simulation) with $< 30\text{MB}$ RAM and $< 20\text{ms}$ query latency.
 

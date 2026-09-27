@@ -21,6 +21,8 @@
 | **`05-requirements/`** | 单需求工作包 | 每个独立需求专属子目录（PRD、交互原型草图、用例设计） | 跨需求的全局规划、原始未加工输入 |
 | **`06-versions/`** | 版本管理 | 目标版本范围承诺（Scope）、版本发布计划、里程碑跟踪 | 单个需求的详细设计（应链接至 05 目录） |
 | **`07-reviews/`** | 评审与验收 | 需求评审纪要、上线验收报告、版本迭代复盘 | 正在进行中的草稿方案 |
+| **`finmesh-backend/`** | 后端计算中台与 MCP | Go 1.25+ 核心服务、DuckDB 存储、语义指标编译器、MCP 服务 | 前端页面与交互样式代码 |
+| **`finmesh-frontend/`** | 前端财务工作台 | Next.js 15+、React 19、React Flow 因果沙盘、P&L 报表组件 | 数据库原生驱动与存储引擎实现 |
 | **`90-assets/`** | 共享资产 | 演示文稿、高保真原型截图、架构高清矢量图、通用附件 | 文本格式的需求或规则说明 |
 | **`99-archive/`** | 历史归档 | 已废弃、已关闭或被完全重写的过期方案与材料 | 处于活跃状态的规范与需求 |
 
@@ -60,6 +62,8 @@ Role of numbered prefixes: Sorting files alphabetically in file managers and cod
 | **`05-requirements/`** | Requirement Packages | Dedicated subdirectories per requirement (PRD, interactive sketches, test cases) | Cross-cutting global plans, unprocessed raw inputs |
 | **`06-versions/`** | Version Management | Target release scope commitments, release plans, milestone tracking | Detailed requirement designs (must link to `05-requirements/`) |
 | **`07-reviews/`** | Reviews & Acceptance | Requirement review notes, production acceptance checklists, postmortems | Ongoing work-in-progress draft proposals |
+| **`finmesh-backend/`** | Backend Compute Core & MCP | Go 1.25+ core services, DuckDB storage, semantic compiler, MCP server | Frontend UI pages and visual CSS styles |
+| **`finmesh-frontend/`** | Frontend Financial Workspace | Next.js 15+, React 19, React Flow causal sandbox, P&L table | Native database drivers and engine internals |
 | **`90-assets/`** | Shared Assets | Slide decks, high-fidelity mockups, vector diagrams, shared attachments | Text-based requirements or workflow rule descriptions |
 | **`99-archive/`** | Historical Archive | Deprecated, closed, or completely superseded legacy documents | Active standards, living requirements, and active plans |
 

@@ -16,24 +16,35 @@ import (
 // ValidateTrialBalance computes debits and credits and validates whether double-entry equilibrium holds.
 func ValidateTrialBalance(entries []model.JournalEntry) model.TrialBalanceResult {
 	var totalDebits, totalCredits float64
-	voucherSet := make(map[string]struct{})
+	voucherDebits := make(map[string]float64)
+	voucherCredits := make(map[string]float64)
 
 	for _, e := range entries {
 		totalDebits += e.DebitAmount
 		totalCredits += e.CreditAmount
-		voucherSet[e.VoucherID] = struct{}{}
+		voucherDebits[e.VoucherID] += e.DebitAmount
+		voucherCredits[e.VoucherID] += e.CreditAmount
 	}
 
 	diff := math.Abs(totalDebits - totalCredits)
 	isBalanced := diff <= 0.0001 && len(entries) > 0
 
+	var unbalanced []string
+	for vID, d := range voucherDebits {
+		c := voucherCredits[vID]
+		if math.Abs(d-c) > 0.0001 {
+			unbalanced = append(unbalanced, vID)
+		}
+	}
+
 	return model.TrialBalanceResult{
-		TotalDebits:  math.Round(totalDebits*100) / 100,
-		TotalCredits: math.Round(totalCredits*100) / 100,
-		Difference:   math.Round(diff*10000) / 10000,
-		IsBalanced:   isBalanced,
-		VoucherCount: len(voucherSet),
-		RowCount:     len(entries),
+		TotalDebits:        math.Round(totalDebits*100) / 100,
+		TotalCredits:       math.Round(totalCredits*100) / 100,
+		Difference:         math.Round(diff*10000) / 10000,
+		IsBalanced:         isBalanced,
+		VoucherCount:       len(voucherDebits),
+		RowCount:           len(entries),
+		UnbalancedVouchers: unbalanced,
 	}
 }
 
@@ -70,8 +81,8 @@ func ParseCSV(r io.Reader, scenario, batchID string) ([]model.JournalEntry, mode
 
 	tb := ValidateTrialBalance(entries)
 	if !tb.IsBalanced {
-		return entries, tb, fmt.Errorf("trial balance validation failed: Total Debits (%.2f) != Total Credits (%.2f), Delta=%.4f",
-			tb.TotalDebits, tb.TotalCredits, tb.Difference)
+		return entries, tb, fmt.Errorf("trial balance validation failed: Total Debits (%.2f) != Total Credits (%.2f), Delta=%.4f, Unbalanced Vouchers: %v",
+			tb.TotalDebits, tb.TotalCredits, tb.Difference, tb.UnbalancedVouchers)
 	}
 
 	return entries, tb, nil
@@ -128,8 +139,8 @@ func ParseExcel(r io.Reader, sheetName, scenario, batchID string) ([]model.Journ
 
 	tb := ValidateTrialBalance(entries)
 	if !tb.IsBalanced {
-		return entries, tb, fmt.Errorf("trial balance validation failed: Total Debits (%.2f) != Total Credits (%.2f), Delta=%.4f",
-			tb.TotalDebits, tb.TotalCredits, tb.Difference)
+		return entries, tb, fmt.Errorf("trial balance validation failed: Total Debits (%.2f) != Total Credits (%.2f), Delta=%.4f, Unbalanced Vouchers: %v",
+			tb.TotalDebits, tb.TotalCredits, tb.Difference, tb.UnbalancedVouchers)
 	}
 
 	return entries, tb, nil
@@ -157,7 +168,7 @@ func recordToJournalEntry(cols []string, colMap map[string]int, scenario, batchI
 
 	voucherID := getVal("voucher_id", "voucher", "凭证号", "id")
 	if voucherID == "" {
-		voucherID = fmt.Sprintf("VCH-%06d", rowIdx)
+		return model.JournalEntry{}, fmt.Errorf("missing required voucher_id at row %d", rowIdx)
 	}
 
 	lineNoStr := getVal("line_no", "line", "行号")
@@ -167,15 +178,21 @@ func recordToJournalEntry(cols []string, colMap map[string]int, scenario, batchI
 	}
 
 	dateStr := getVal("posting_date", "date", "记账日期", "日期")
+	if dateStr == "" {
+		return model.JournalEntry{}, fmt.Errorf("missing required posting_date at row %d", rowIdx)
+	}
 	postingDate, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
 		postingDate, err = time.Parse("2006/01/02", dateStr)
 		if err != nil {
-			postingDate = time.Now().UTC().Truncate(24 * time.Hour)
+			return model.JournalEntry{}, fmt.Errorf("unparseable posting_date '%s' at row %d (expected YYYY-MM-DD or YYYY/MM/DD)", dateStr, rowIdx)
 		}
 	}
 
 	accountCode := getVal("account_code", "code", "科目代码")
+	if accountCode == "" {
+		return model.JournalEntry{}, fmt.Errorf("missing required account_code at row %d", rowIdx)
+	}
 	accountName := getVal("account_name", "name", "科目名称")
 	accountCategory := getVal("account_category", "category", "科目分类")
 	if accountCategory == "" {
@@ -185,8 +202,21 @@ func recordToJournalEntry(cols []string, colMap map[string]int, scenario, batchI
 	debitStr := getVal("debit_amount", "debit", "借方金额", "借方")
 	creditStr := getVal("credit_amount", "credit", "贷方金额", "贷方")
 
-	debit, _ := strconv.ParseFloat(strings.ReplaceAll(debitStr, ",", ""), 64)
-	credit, _ := strconv.ParseFloat(strings.ReplaceAll(creditStr, ",", ""), 64)
+	var debit, credit float64
+	if debitStr != "" {
+		d, err := strconv.ParseFloat(strings.ReplaceAll(debitStr, ",", ""), 64)
+		if err != nil {
+			return model.JournalEntry{}, fmt.Errorf("invalid debit_amount '%s' at row %d: %w", debitStr, rowIdx, err)
+		}
+		debit = d
+	}
+	if creditStr != "" {
+		c, err := strconv.ParseFloat(strings.ReplaceAll(creditStr, ",", ""), 64)
+		if err != nil {
+			return model.JournalEntry{}, fmt.Errorf("invalid credit_amount '%s' at row %d: %w", creditStr, rowIdx, err)
+		}
+		credit = c
+	}
 
 	dept := getVal("department_id", "department", "部门")
 	entity := getVal("entity_id", "entity", "法人主体", "公司")

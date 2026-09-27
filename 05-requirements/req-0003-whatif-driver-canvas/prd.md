@@ -13,7 +13,7 @@
 - **关联来源**：`SRC-0001`（访谈轮次 4、7、10）、`SRC-0012`（React Flow / @xyflow/react）、`SRC-0014`（DuckDB 毫秒级内存重算）
 - **所属模块**：画布推演 (Canvas & Simulation)
 - **目标版本**：`v0.1`
-- **生命周期状态**：`defined`（以 [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md) 为准）
+- **生命周期状态唯一维护位置**：[04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **前置依赖**：`REQ-0002`（依赖语义指标引擎提供的基准值与公式元数据）
 - **责任人**：Frontend / Fullstack
 
@@ -21,9 +21,11 @@
 
 ### 2. 业务背景与用户痛点
 在传统财务建模与经营决策中：
-1. **黑盒 Excel 公式链条**：复杂的财务模型散落在成百上千个单元格中，跨表引用如同迷宫，管理层无法直观理解底层业务动因（如客户流失率、获客单价、销售人效）如何层层传导至最终净利润与现金流。
-2. **场景推演迟钝且易错**：每当管理层询问“如果下季度提价 10%，同时客户流失率增加 2 个百分点，现金跑道会缩短还是延长？”，财务分析师往往需要花费数小时甚至数天手动调整 Excel 副本，且极易破坏勾稽关系。
-3. **推演结论缺乏因果透明度**：大模型生成的情景预测往往直接输出数字，无法可视化展示“哪项假设起了主导作用”，决策者不敢采纳。
+1. `[已观察]` **黑盒 Excel 公式链条**：复杂的财务模型散落在成百上千个单元格中，跨表引用如同迷宫，管理层无法直观理解业务动因如何传导至净利润与现金流（来源：`SRC-0001`）。
+2. `[已观察]` **场景推演迟钝且易错**：每当管理层询问经营敏感度假设，分析师往往需要花费数天调整模型，且极易破坏勾稽关系（来源：`SRC-0001`）。
+3. `[推断]` **推演因果透明度要求**：基于 React Flow 构建可视化因果驱动树画布，可将敏感度反馈压缩至 100ms 内，并直观呈现边际贡献。
+4. `[待确认]` **业务部门自主编排动因树门槛**：非财务背景的主管能否独立拖拽连线编排公式，需在可用性测试中评估。
+5. `[未覆盖]` **蒙特卡洛随机模拟**：本需求专注确定性 DAG 灵敏度推演，高阶随机概率分布模拟留待后续规划。
 
 **目标**：基于 React Flow 构建可视化因果驱动树画布。将财务指标抽象为可交互的节点网络，支持滑块微调、敏感度实时传导、基准与模拟场景分屏对比，并在毫秒级内完成 DAG 级联重算。
 
@@ -105,7 +107,7 @@ export interface DriverEdgeData {
 - **Originating Sources**: `SRC-0001` (Interview rounds 4, 7, 10), `SRC-0012` (React Flow / @xyflow/react), `SRC-0014` (DuckDB sub-second in-memory recomputation)
 - **Module**: Canvas & Simulation
 - **Target Release**: `v0.1`
-- **Lifecycle Status**: `defined` (governed in [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md))
+- **Lifecycle Status Source of Truth**: [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **Prerequisites**: `REQ-0002` (Depends on Semantic Metric Engine for baseline actuals and formula metadata)
 - **Owner**: Frontend / Fullstack
 
@@ -113,9 +115,11 @@ export interface DriverEdgeData {
 
 ### 2. Business Context & User Pain Points
 In conventional financial planning and strategic decision-making:
-1. **Opaque Spreadsheet Formula Chains**: Financial models are scattered across thousands of cells and cross-sheet links, leaving executives unable to intuitively grasp how operational drivers (churn, CAC, sales rep productivity) propagate to net profit and cash runway.
-2. **Sluggish and Fragile Scenario Modeling**: When leadership asks "If we increase prices by 10% next quarter while churn rises by 2 percentage points, how does our runway change?", FP&A analysts spend days manually cloning sheets, risking broken formula integrity.
-3. **Lack of Causal Explainability in Black-Box AI**: LLMs generating financial forecasts often emit direct numbers without visual breakdown of which underlying assumptions drove the outcome, eroding trust.
+1. `[Observed]` **Opaque Spreadsheet Formula Chains**: Financial models are scattered across thousands of cells and cross-sheet links, obscuring how operational drivers propagate to profit and cash (Source: `SRC-0001`).
+2. `[Observed]` **Sluggish and Fragile Scenario Modeling**: Manually cloning sheets for what-if scenarios takes days and risks formula corruption (Source: `SRC-0001`).
+3. `[Inferred]` **Demand for Causal Explainability**: Modeling metrics as a React Flow DAG enables sub-100ms visual sensitivity feedback with clear marginal attribution.
+4. `[To-Confirm]` **Self-service Node Modeling Feasibility**: Non-finance operators' ability to independently construct custom driver nodes without training.
+5. `[Uncovered]` **Monte Carlo Probabilistic Simulation**: This requirement focuses on deterministic DAG sensitivity; probabilistic simulation is reserved for subsequent releases.
 
 **Goal**: Build an interactive causal driver tree canvas powered by React Flow. Financial metrics are modeled as an interactive DAG with real-time sliders, instant sensitivity propagation, baseline vs. simulated split comparisons, and sub-100ms cascaded recalculations.
 

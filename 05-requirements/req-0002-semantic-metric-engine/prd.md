@@ -13,7 +13,7 @@
 - **关联来源**：`SRC-0001`（访谈轮次 3、6、9）、`SRC-0014`（DuckDB 列式计算与透视函数）、`SRC-0015`（dbt 声明式建模思想）
 - **所属模块**：计算引擎 (Compute Engine)
 - **目标版本**：`v0.1`
-- **生命周期状态**：`defined`（以 [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md) 为准）
+- **生命周期状态唯一维护位置**：[04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **前置依赖**：`REQ-0001`（需要底层 Fact 事实表数据支持）
 - **责任人**：Eng (Backend / Systems)
 
@@ -21,9 +21,11 @@
 
 ### 2. 业务背景与用户痛点
 财务规划与分析（FP&A）的日常核心产出是多维损益表（P&L）与指标监控看板：
-1. **指标口径撕裂**：不同业务部门对同一指标（如 ARR、毛利率、获客成本）计算公式不一，导致月结管理会议沦为口径争论。
-2. **大模型直接计算幻觉**：若让 LLM 自由书写 SQL 或口算指标，极易出现除零错误、多表连接字段漂移与不可重复的算术误差。
-3. **透视与版本对比笨重**：传统数仓在处理“纵向分录转横向 12 个月”以及“Actual vs Budget vs Forecast”多版本同屏对比时，SQL 编写繁琐且性能难以达到交互级秒开。
+1. `[已观察]` **指标口径撕裂**：不同业务部门对同一指标（如 ARR、毛利率、获客成本）计算公式不一，导致月结管理会议沦为口径争论（来源：`SRC-0001`）。
+2. `[已观察]` **大模型直接计算幻觉**：若让 LLM 自由书写 SQL 或口算指标，极易出现除零错误、多表连接字段漂移与不可重复的算术误差（来源：`SRC-0001`）。
+3. `[推断]` **透视与版本对比笨重**：传统数仓多版本同屏对比编写繁琐，采用 DuckDB 内存聚合与 CTE 编译可将交互延迟控制在毫秒级。
+4. `[待确认]` **跨法人合并抵消规则**：多子公司集团内部往来交易抵消规则的复杂度，需在后续跨主体试点中评估。
+5. `[未覆盖]` **双准则自动转换**：本需求聚焦管理报表与标准 P&L，全自动 GAAP/IFRS 差异调整引擎由后续里程碑承载。
 
 **目标**：构建基于 Go + DuckDB 的声明式语义指标计算引擎。通过 YAML 统一指标定义，将用户查询动态编译为严谨确定性的 DuckDB SQL，并在毫秒级完成多版本 P&L 透视表生成。
 
@@ -116,7 +118,7 @@ metrics:
 - **Associated Sources**: `SRC-0001` (Grill-me Rounds 3, 6, 9), `SRC-0014` (DuckDB OLAP & PIVOT), `SRC-0015` (dbt declarative modeling)
 - **Module**: Compute Engine
 - **Target Release**: `v0.1`
-- **Lifecycle Status**: `defined` (canonical in [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md))
+- **Lifecycle Status Source of Truth**: [04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **Prerequisites**: `REQ-0001` (Requires underlying Fact schema data)
 - **Owner**: Eng (Backend / Systems)
 
@@ -124,9 +126,11 @@ metrics:
 
 ### 2. Business Context & Problem Statement
 The primary recurring deliverable in Corporate Financial Planning & Analysis (FP&A) is the multi-dimensional Profit & Loss (P&L) schedule and KPI performance reporting:
-1. **Metric Definition Divergence**: Inconsistent metric formulas (ARR, Gross Margin, CAC) across departments spark unproductive alignment debates during month-end closes.
-2. **Generative LLM Arithmetic Hallucinations**: Direct LLM SQL generation or mental calculation yields division-by-zero errors, join drift, and irreproducible math inaccuracies.
-3. **Rigid Pivot & Scenario Comparison Performance**: Conventional data warehouses struggle to deliver sub-second response times when pivoting millions of ledger lines into 12 horizontal monthly columns and comparing Actual vs Budget versions concurrently.
+1. `[Observed]` **Metric Definition Divergence**: Inconsistent metric formulas (ARR, Gross Margin, CAC) across departments spark unproductive alignment debates during month-end closes (Source: `SRC-0001`).
+2. `[Observed]` **Generative LLM Arithmetic Hallucinations**: Direct LLM SQL generation yields join drift and irreproducible math inaccuracies (Source: `SRC-0001`).
+3. `[Inferred]` **Rigid Pivot & Scenario Comparison**: Conventional warehouses struggle with sub-second latency; compiling DAGs into DuckDB CTEs achieves millisecond-grade responsiveness.
+4. `[To-Confirm]` **Intercompany Elimination Complexity**: Elimination rules across multi-subsidiary corporate entities to be calibrated in cross-entity pilots.
+5. `[Uncovered]` **Automated Dual-GAAP/IFRS Conversion**: Automated regulatory reconciliations are reserved for future milestone scoping.
 
 **Goal**: Build a declarative semantic metric engine in Go + DuckDB. Standardizing metric formulas via YAML, the engine dynamically compiles user queries into deterministic DuckDB SQL, delivering multi-scenario financial P&L pivot schedules in milliseconds.
 

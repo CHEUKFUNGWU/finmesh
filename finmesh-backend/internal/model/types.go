@@ -20,12 +20,13 @@ type JournalEntry struct {
 
 // TrialBalanceResult captures the validation outcome of ingested vouchers.
 type TrialBalanceResult struct {
-	TotalDebits  float64 `json:"total_debits"`
-	TotalCredits float64 `json:"total_credits"`
-	Difference   float64 `json:"difference"`
-	IsBalanced   bool    `json:"is_balanced"`
-	VoucherCount int     `json:"voucher_count"`
-	RowCount     int     `json:"row_count"`
+	TotalDebits        float64  `json:"total_debits"`
+	TotalCredits       float64  `json:"total_credits"`
+	Difference         float64  `json:"difference"`
+	IsBalanced         bool     `json:"is_balanced"`
+	VoucherCount       int      `json:"voucher_count"`
+	RowCount           int      `json:"row_count"`
+	UnbalancedVouchers []string `json:"unbalanced_vouchers,omitempty"`
 }
 
 // MetricDefinition defines a declarative financial metric in the semantic catalog.
