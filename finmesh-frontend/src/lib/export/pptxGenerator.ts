@@ -157,8 +157,8 @@ export async function generateExecutiveDeck(data: ExecutiveDeckData): Promise<vo
       { text: "DuckDB Token", options: { bold: true, color: TEXT_WHITE, fill: { color: "1F2937" } } },
     ],
     ...data.metrics.map((m): pptxgen.TableRow => {
-      // Invert color logic for costs (COGS/Opex)
-      const isFavorable = (m.category === "COGS" || m.category === "Opex") ? m.variance <= 0 : m.variance >= 0;
+      // Standard favorable logic: normalized variance >= 0 is favorable across revenue, profit, and cost savings
+      const isFavorable = m.variance >= 0;
       return [
         { text: m.name, options: { color: TEXT_WHITE } },
         { text: `$${m.actual.toLocaleString()}`, options: { color: TEXT_WHITE } },

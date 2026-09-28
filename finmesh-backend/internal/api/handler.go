@@ -343,6 +343,9 @@ func (h *APIHandler) handleMetricsDrilldown(w http.ResponseWriter, r *http.Reque
 
 	metricName := strings.TrimSpace(strings.ToLower(r.URL.Query().Get("metric")))
 	if metricName == "" {
+		metricName = strings.TrimSpace(strings.ToLower(r.URL.Query().Get("metric_name")))
+	}
+	if metricName == "" {
 		http.Error(w, `{"error":"missing metric parameter"}`, http.StatusBadRequest)
 		return
 	}
@@ -442,7 +445,9 @@ func (h *APIHandler) handleMetricsDrilldown(w http.ResponseWriter, r *http.Reque
 		"period":      period,
 		"sql_hash":    sqlHash,
 		"sql_query":   cteSQL,
+		"cte_sql":     cteSQL,
 		"entries":     entries,
+		"vouchers":    entries,
 		"row_count":   len(entries),
 	})
 }

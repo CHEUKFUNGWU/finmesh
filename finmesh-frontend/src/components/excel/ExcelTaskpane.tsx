@@ -128,7 +128,7 @@ export function ExcelTaskpane() {
     setDrilldownData({ metricName: metric, period, scenario, isLoading: true });
 
     const apiUrl = process.env.NEXT_PUBLIC_FINMESH_API_URL || "http://localhost:8080";
-    fetch(`${apiUrl}/api/v1/metrics/drilldown?metric_name=${encodeURIComponent(metric)}&period=${encodeURIComponent(period)}&scenario=${encodeURIComponent(scenario)}`)
+    fetch(`${apiUrl}/api/v1/metrics/drilldown?metric=${encodeURIComponent(metric)}&metric_name=${encodeURIComponent(metric)}&period=${encodeURIComponent(period)}&scenario=${encodeURIComponent(scenario)}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -139,9 +139,9 @@ export function ExcelTaskpane() {
           metricName: metric,
           period,
           scenario,
-          cteSql: data.cte_sql,
+          cteSql: data.cte_sql || data.sql_query,
           sqlHash: data.sql_hash || cell.sqlHash,
-          vouchers: data.vouchers || [],
+          vouchers: data.vouchers || data.entries || [],
           isLoading: false,
         });
       })
@@ -244,7 +244,8 @@ export function ExcelTaskpane() {
         },
       };
 
-      const res = await fetch("http://localhost:8080/api/v1/scenarios/override", {
+      const apiUrl = process.env.NEXT_PUBLIC_FINMESH_API_URL || "http://localhost:8080";
+      const res = await fetch(`${apiUrl}/api/v1/scenarios/override`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
