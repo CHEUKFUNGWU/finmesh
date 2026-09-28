@@ -1,7 +1,7 @@
 # REQ-0009: 纯正黑白灰金融设计系统与三栏指挥作战台需求规格说明书 (PRD)
 
 - **需求 ID**: `REQ-0009`
-- **当前状态**: `developing`
+- **生命周期状态唯一维护位置**：[04-requirement-pool/requirement-pool.md](../../04-requirement-pool/requirement-pool.md)
 - **来源引用**: `SRC-0023` (用户黑白灰设计指示), `SRC-0002` (`retail_performance_workstation/DESIGN.md`), `SRC-0003` (`AegisPlan`)
 - **唯一事实源**: `05-requirements/req-0009-command-workbench-uiux/prd.md`
 

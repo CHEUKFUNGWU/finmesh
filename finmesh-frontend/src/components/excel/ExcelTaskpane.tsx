@@ -407,11 +407,11 @@ export function ExcelTaskpane() {
                     <div
                       key={m.key}
                       onClick={() => handleInsertMetric(m.key)}
-                      className="p-2.5 rounded bg-[#111827] border border-neutral-800 hover:border-blue-700/80 cursor-pointer transition-all"
+                      className="p-2.5 rounded bg-[#0F141C] border border-neutral-800 hover:border-neutral-600 cursor-pointer transition-all"
                     >
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-white">{m.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-900 font-mono">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-800 font-mono">
                           {m.category}
                         </span>
                       </div>
@@ -431,11 +431,11 @@ export function ExcelTaskpane() {
                   Tweak operational assumptions in Excel and sync back to FinMesh Causal Canvas:
                 </p>
 
-                <div className="space-y-3 bg-[#111827] p-3 rounded border border-neutral-800 text-xs">
+                <div className="space-y-3 bg-[#0F141C] p-3 rounded border border-neutral-800 text-xs">
                   <div>
                     <div className="flex justify-between text-neutral-300 mb-1">
                       <span>Price Lift (%)</span>
-                      <span className="font-mono text-emerald-400">+{(priceLift * 100).toFixed(0)}%</span>
+                      <span className="font-mono tabular-nums text-emerald-400">+{(priceLift * 100).toFixed(0)}%</span>
                     </div>
                     <input
                       type="range"
@@ -444,14 +444,14 @@ export function ExcelTaskpane() {
                       step="0.05"
                       value={priceLift}
                       onChange={(e) => setPriceLift(parseFloat(e.target.value))}
-                      className="w-full accent-blue-500"
+                      className="w-full h-1.5 bg-neutral-800 rounded appearance-none cursor-pointer accent-neutral-300"
                     />
                   </div>
 
                   <div>
                     <div className="flex justify-between text-neutral-300 mb-1">
                       <span>Hiring Delay (Months)</span>
-                      <span className="font-mono text-amber-400">{hiringDelay} Mo</span>
+                      <span className="font-mono tabular-nums text-white">{hiringDelay} Mo</span>
                     </div>
                     <input
                       type="range"
@@ -460,14 +460,14 @@ export function ExcelTaskpane() {
                       step="1"
                       value={hiringDelay}
                       onChange={(e) => setHiringDelay(parseInt(e.target.value))}
-                      className="w-full accent-blue-500"
+                      className="w-full h-1.5 bg-neutral-800 rounded appearance-none cursor-pointer accent-neutral-300"
                     />
                   </div>
 
                   <div>
                     <div className="flex justify-between text-neutral-300 mb-1">
                       <span>Churn Reduction (%)</span>
-                      <span className="font-mono text-blue-400">-{(churnImprovement * 100).toFixed(0)}%</span>
+                      <span className="font-mono tabular-nums text-white">-{(churnImprovement * 100).toFixed(0)}%</span>
                     </div>
                     <input
                       type="range"
@@ -476,7 +476,7 @@ export function ExcelTaskpane() {
                       step="0.01"
                       value={churnImprovement}
                       onChange={(e) => setChurnImprovement(parseFloat(e.target.value))}
-                      className="w-full accent-blue-500"
+                      className="w-full h-1.5 bg-neutral-800 rounded appearance-none cursor-pointer accent-neutral-300"
                     />
                   </div>
                 </div>

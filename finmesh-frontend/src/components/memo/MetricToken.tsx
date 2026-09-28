@@ -16,6 +16,7 @@ export function MetricToken({
   value,
   displayValue,
   sqlHash = "a7f8e32c",
+  category,
   onClick,
 }: MetricTokenProps) {
   const num = typeof value === "number" ? value : parseFloat(value);
@@ -24,9 +25,10 @@ export function MetricToken({
   return (
     <button
       type="button"
+      data-category={category}
       onClick={() => onClick && onClick(metricId, sqlHash)}
       className="inline-flex items-center gap-1.5 px-2 py-0.5 mx-1 rounded text-xs font-mono font-medium bg-neutral-900 border border-neutral-800 hover:border-neutral-600 hover:bg-neutral-850 transition-colors cursor-pointer"
-      title={`Click to inspect DuckDB SQL & Ledger vouchers (Hash: #${sqlHash})`}
+      title={`Click to inspect ${category ? `[${category}] ` : ""}DuckDB SQL & Ledger vouchers (Hash: #${sqlHash})`}
     >
       <span className={`tabular-nums ${isPositive ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}`}>
         {displayValue}

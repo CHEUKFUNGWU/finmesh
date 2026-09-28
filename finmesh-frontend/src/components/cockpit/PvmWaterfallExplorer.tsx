@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { HelpCircle, ChevronRight, CheckCircle2 } from "lucide-react";
+import { HelpCircle, ChevronRight, CheckCircle2, AlertCircle } from "lucide-react";
 
 export interface PvmBar {
   id: string;
@@ -235,8 +235,19 @@ export function PvmWaterfallExplorer({ data = DEFAULT_PVM_DATA, onTokenClick }: 
       {/* Persistent Conservation Status Line (DESIGN.md §8.2) */}
       <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 bg-[#070A10] p-2.5 rounded border border-neutral-800">
         <div className="flex items-center space-x-1.5">
-          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-          <span>代数守恒守序已校验 · 未归因金额: ${unassignedVariance.toFixed(2)}</span>
+          {unassignedVariance <= 0.01 ? (
+            <>
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span>代数守恒已校验 · 未归因金额: ${unassignedVariance.toFixed(2)}</span>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-3.5 w-3.5 text-rose-400" />
+              <span className="text-rose-400">
+                代数未守恒 (偏差: ${unassignedVariance.toFixed(2)}) · 需复核动因分解
+              </span>
+            </>
+          )}
         </div>
         <span className="text-neutral-500">PVM Invariant v1.0 (DuckDB Columnar Verified)</span>
       </div>

@@ -11,19 +11,15 @@ import {
   FileSpreadsheet,
   PanelRightClose,
   PanelRightOpen,
-  Sparkles,
   Building2,
   Calendar,
-  ChevronDown,
   ShieldCheck,
   CheckCircle2,
-  TrendingDown,
-  TrendingUp,
 } from "lucide-react";
 
 import { KpiStatCard } from "@/components/cockpit/KpiStatCard";
 import { PvmWaterfallExplorer } from "@/components/cockpit/PvmWaterfallExplorer";
-import { SensitivitySandbox } from "@/components/cockpit/SensitivitySandbox";
+import { SensitivitySandbox, SensitivityScenarioOverrides } from "@/components/cockpit/SensitivitySandbox";
 import { CommandMenu } from "@/components/layout/CommandMenu";
 import { PnLTable, PnLRow } from "@/components/report/PnLTable";
 import { DriverCanvas } from "@/components/canvas/DriverCanvas";
@@ -34,74 +30,29 @@ import { SlideDeckModal } from "@/components/presentation/SlideDeckModal";
 import { ExecutiveDeckData, generateExecutiveDeck } from "@/lib/export/pptxGenerator";
 import { FINANCIAL_BASELINE_2026_Q1 } from "@/lib/financialBaseline";
 
+// Derive Canonical Deck Baseline from Single Source of Truth
 const DEFAULT_DECK_DATA: ExecutiveDeckData = {
   period: "2026-Q1",
   generatedAt: "2026-03-31T23:59:59Z",
   kpis: {
-    arr: 1250000,
-    arrVariance: "-$125,000 (-9.1%)",
-    grossMarginPct: 58.0,
+    arr: FINANCIAL_BASELINE_2026_Q1.revenue.actual,
+    arrVariance: `${FINANCIAL_BASELINE_2026_Q1.revenue.variance < 0 ? "-" : "+"}$${Math.abs(FINANCIAL_BASELINE_2026_Q1.revenue.variance).toLocaleString()} (${FINANCIAL_BASELINE_2026_Q1.revenue.variancePct})`,
+    grossMarginPct: parseFloat(((FINANCIAL_BASELINE_2026_Q1.gross_profit.actual / FINANCIAL_BASELINE_2026_Q1.revenue.actual) * 100).toFixed(1)),
     grossMarginVariance: "-1.6% vs Plan",
     netBurn: -26667,
     runwayMonths: 28.4,
   },
-  metrics: [
-    {
-      id: "revenue",
-      name: "Total Revenue / ARR",
-      actual: 1250000,
-      budget: 1375000,
-      variance: -125000,
-      variancePct: "-9.1%",
-      category: "Revenue",
-      formula: "SUM(credit) - SUM(debit)",
-      sqlHash: "a7f8e32c",
-    },
-    {
-      id: "cogs",
-      name: "Cost of Goods Sold",
-      actual: 525000,
-      budget: 555000,
-      variance: 30000,
-      variancePct: "-5.4%",
-      category: "COGS",
-      formula: "SUM(debit) - SUM(credit)",
-      sqlHash: "b2c9d1e4",
-    },
-    {
-      id: "gross_profit",
-      name: "Gross Profit",
-      actual: 725000,
-      budget: 820000,
-      variance: -95000,
-      variancePct: "-11.6%",
-      category: "Profitability",
-      formula: "revenue - cogs",
-      sqlHash: "e5d4c3b2",
-    },
-    {
-      id: "opex",
-      name: "Operating Expenses",
-      actual: 410000,
-      budget: 450000,
-      variance: 40000,
-      variancePct: "-8.9%",
-      category: "Opex",
-      formula: "SUM(debit) - SUM(credit)",
-      sqlHash: "f1a2b3c4",
-    },
-    {
-      id: "net_income",
-      name: "Net Income",
-      actual: 315000,
-      budget: 370000,
-      variance: -55000,
-      variancePct: "-14.9%",
-      category: "Profitability",
-      formula: "gross_profit - opex",
-      sqlHash: "99e8d7c6",
-    },
-  ],
+  metrics: Object.values(FINANCIAL_BASELINE_2026_Q1).map((m) => ({
+    id: m.id,
+    name: m.name,
+    actual: m.actual,
+    budget: m.budget,
+    variance: m.variance,
+    variancePct: m.variancePct,
+    category: m.category,
+    formula: m.formula,
+    sqlHash: m.sqlHash,
+  })),
   varianceDiagnosis: [
     "Volume Contraction: Enterprise renewal cycle extended by 22 days in APAC, leading to $75k unearned revenue variance.",
     "Price Discipline: ASP held steady across Tier-1 accounts with zero emergency discounting.",
@@ -183,14 +134,7 @@ export default function WorkspacePage() {
     }
   };
 
-  const handleCommitDuckDB = async (overrides: {
-    priceLift: number;
-    cloudCostDelta: number;
-    hiringDelay: number;
-    churnDelta: number;
-    simulatedGrossProfit: number;
-    simulatedNetIncome: number;
-  }) => {
+  const handleCommitDuckDB = async (overrides: SensitivityScenarioOverrides) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_FINMESH_API_URL || "http://localhost:8080";
       await fetch(`${apiUrl}/api/v1/whatif/override`, {
@@ -198,7 +142,7 @@ export default function WorkspacePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scenario: "sandbox_sim_q1",
-          period: "2026-Q1",
+          period: selectedPeriod,
           price_lift_pct: overrides.priceLift,
           cloud_cost_pct: overrides.cloudCostDelta,
           hiring_delay_months: overrides.hiringDelay,
@@ -217,6 +161,12 @@ export default function WorkspacePage() {
     }
   };
 
+  const scenarioDisplayMap: Record<string, string> = {
+    actual_vs_budget: "Actual vs Budget Plan",
+    bull: "What-If Bull (+10% ASP)",
+    bear: "What-If Bear (-15% Churn)",
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Global Action & Command Bar */}
@@ -225,10 +175,10 @@ export default function WorkspacePage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center rounded-md bg-neutral-900 border border-neutral-800 p-1 text-xs">
             <span className="px-2.5 py-1 rounded bg-neutral-800 text-white font-medium">
-              2026-Q1 (Jan - Mar)
+              {selectedPeriod}
             </span>
             <span className="px-2.5 py-1 text-muted-foreground font-mono">
-              Actual vs Budget Plan
+              {scenarioDisplayMap[selectedScenario] || "Actual vs Budget"}
             </span>
           </div>
 
@@ -354,7 +304,7 @@ export default function WorkspacePage() {
       {/* 3. True 3-Pane Command Workbench Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         {/* ========================================================= */}
-        {/* PANE 1: Left Dimension & Entity Hierarchy Navigator (Col 2/3) */}
+        {/* PANE 1: Left Dimension & Entity Hierarchy Navigator (Col 3) */}
         {/* ========================================================= */}
         <div className="xl:col-span-3 space-y-4">
           {/* Navigation Views Accordion */}
@@ -442,6 +392,61 @@ export default function WorkspacePage() {
             </div>
           </div>
 
+          {/* Interactive Accounting Period & Scenario Selectors (Spec Req §3.1) */}
+          <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-neutral-400" />
+                <span>Period &amp; Scenario</span>
+              </span>
+              <span className="text-[10px] font-mono text-neutral-500">SSoT</span>
+            </div>
+
+            {/* Period Selector Buttons */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono uppercase text-neutral-500 block">Fiscal Period</label>
+              <div className="grid grid-cols-3 gap-1 text-xs">
+                {["2026-Q1", "2025-Q4", "2025-FY"].map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setSelectedPeriod(period)}
+                    className={`py-1 px-1.5 rounded text-[11px] font-mono transition-colors cursor-pointer ${
+                      selectedPeriod === period
+                        ? "bg-neutral-800 text-white border border-neutral-700 font-medium"
+                        : "text-neutral-400 hover:text-white bg-neutral-900/60"
+                    }`}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Scenario Selector Buttons */}
+            <div className="space-y-1 pt-1 border-t border-neutral-850">
+              <label className="text-[10px] font-mono uppercase text-neutral-500 block">Ledger Scenario</label>
+              <div className="space-y-1">
+                {[
+                  { id: "actual_vs_budget", label: "Actual vs Budget (Baseline)" },
+                  { id: "bull", label: "What-If Bull (+10% ASP)" },
+                  { id: "bear", label: "What-If Bear (-15% Churn)" },
+                ].map((sc) => (
+                  <button
+                    key={sc.id}
+                    onClick={() => setSelectedScenario(sc.id)}
+                    className={`w-full text-left p-1.5 rounded text-xs transition-colors cursor-pointer ${
+                      selectedScenario === sc.id
+                        ? "bg-neutral-800 text-white font-medium"
+                        : "text-neutral-400 hover:text-white hover:bg-neutral-900/60"
+                    }`}
+                  >
+                    {sc.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Legal Entity & Accounting Scope Selector */}
           <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
             <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
@@ -493,7 +498,7 @@ export default function WorkspacePage() {
           <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
             <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
               <span>Metric Fast-Inspect</span>
-              <span className="text-[10px] font-mono text-neutral-500">2026-Q1</span>
+              <span className="text-[10px] font-mono text-neutral-500">{selectedPeriod}</span>
             </div>
 
             <div className="space-y-1 font-mono text-[11px]">

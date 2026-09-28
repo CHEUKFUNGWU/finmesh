@@ -2,24 +2,20 @@
 
 import React, { useState } from "react";
 import { Sliders, RotateCcw, ArrowRight, Check } from "lucide-react";
+import { FINANCIAL_BASELINE_2026_Q1 } from "@/lib/financialBaseline";
+
+export interface SensitivityScenarioOverrides {
+  priceLift: number;
+  cloudCostDelta: number;
+  hiringDelay: number;
+  churnDelta: number;
+  simulatedGrossProfit: number;
+  simulatedNetIncome: number;
+}
 
 interface SensitivitySandboxProps {
-  onSimulateChange?: (overrides: {
-    priceLift: number;
-    cloudCostDelta: number;
-    hiringDelay: number;
-    churnDelta: number;
-    simulatedGrossProfit: number;
-    simulatedNetIncome: number;
-  }) => void;
-  onCommitToDuckDB?: (overrides: {
-    priceLift: number;
-    cloudCostDelta: number;
-    hiringDelay: number;
-    churnDelta: number;
-    simulatedGrossProfit: number;
-    simulatedNetIncome: number;
-  }) => void;
+  onSimulateChange?: (overrides: SensitivityScenarioOverrides) => void;
+  onCommitToDuckDB?: (overrides: SensitivityScenarioOverrides) => void;
   isSyncing?: boolean;
 }
 
@@ -34,43 +30,45 @@ export function SensitivitySandbox({
   const [churnDelta, setChurnDelta] = useState(-1); // -1% churn improvement
   const [committed, setCommitted] = useState(false);
 
-  // Grounded in 2026-Q1 Canonical Financial Baseline:
-  // Base Revenue = $1,250,000
-  // Base COGS = $525,000 -> Base Gross Profit = $725,000 (58.0% Gross Margin)
-  // Base OPEX = $410,000 -> Base Net Income = $315,000 (25.2% Net Margin)
+  // Grounded in 2026-Q1 Canonical Financial Baseline Single Source of Truth
+  const baseRevenue = FINANCIAL_BASELINE_2026_Q1.revenue.actual; // $1,250,000
+  const baseCogs = FINANCIAL_BASELINE_2026_Q1.cogs.actual; // $525,000
+  const baseOpex = FINANCIAL_BASELINE_2026_Q1.opex.actual; // $410,000
+  const baseNetIncome = FINANCIAL_BASELINE_2026_Q1.net_income.actual; // $315,000
+  const baseGrossMarginRatio = (FINANCIAL_BASELINE_2026_Q1.gross_profit.actual / baseRevenue); // 0.58
 
   // 1. Direct Gross Margin Drivers (Revenue & COGS only):
-  // 1% price lift = +$12,500 Gross Profit (+100 bps on Gross Margin)
-  // 1% cloud cost increase = +$5,250 COGS (-42 bps on Gross Margin)
-  const deltaRevenue = (priceLift / 100) * 1250000;
-  const deltaCogs = (cloudCostDelta / 100) * 525000;
-  const simulatedRevenue = 1250000 + deltaRevenue;
-  const simulatedCogs = 525000 + deltaCogs;
+  // 1% price lift = +100 bps on Gross Margin
+  // 1% cloud cost increase = -42 bps on Gross Margin
+  const deltaRevenue = (priceLift / 100) * baseRevenue;
+  const deltaCogs = (cloudCostDelta / 100) * baseCogs;
+  const simulatedRevenue = baseRevenue + deltaRevenue;
+  const simulatedCogs = baseCogs + deltaCogs;
   const simulatedGrossProfit = simulatedRevenue - simulatedCogs;
   const simulatedGrossMarginPct = ((simulatedGrossProfit / simulatedRevenue) * 100).toFixed(1);
-  const grossMarginBpsDelta = Math.round(((simulatedGrossProfit / simulatedRevenue) - 0.58) * 10000);
+  const grossMarginBpsDelta = Math.round(((simulatedGrossProfit / simulatedRevenue) - baseGrossMarginRatio) * 10000);
 
   // 2. Operating & Retention Drivers (OPEX & Churn):
   // Hiring delay saves ~$13,333/month in non-critical engineering/SG&A compensation
   const opexSavings = hiringDelay * 13333;
   // Churn improvement preserves revenue and profit
-  const churnProfitDelta = (-churnDelta / 100) * 12500;
-  const simulatedOpex = Math.max(0, 410000 - opexSavings);
+  const churnProfitDelta = (-churnDelta / 100) * (baseRevenue * 0.01);
+  const simulatedOpex = Math.max(0, baseOpex - opexSavings);
   const simulatedNetIncome = Math.round(simulatedGrossProfit - simulatedOpex + churnProfitDelta);
-  const netIncomeDelta = simulatedNetIncome - 315000;
+  const netIncomeDelta = simulatedNetIncome - baseNetIncome;
   const simulatedNetMarginPct = ((simulatedNetIncome / simulatedRevenue) * 100).toFixed(1);
 
   const notifyChange = (p: number, c: number, h: number, ch: number) => {
     setCommitted(false);
     if (onSimulateChange) {
-      const dRev = (p / 100) * 1250000;
-      const dCogs = (c / 100) * 525000;
-      const simRev = 1250000 + dRev;
-      const simCogs = 525000 + dCogs;
+      const dRev = (p / 100) * baseRevenue;
+      const dCogs = (c / 100) * baseCogs;
+      const simRev = baseRevenue + dRev;
+      const simCogs = baseCogs + dCogs;
       const simGp = simRev - simCogs;
       const opexSav = h * 13333;
-      const churnDeltaVal = (-ch / 100) * 12500;
-      const simOp = Math.max(0, 410000 - opexSav);
+      const churnDeltaVal = (-ch / 100) * (baseRevenue * 0.01);
+      const simOp = Math.max(0, baseOpex - opexSav);
       const simNi = Math.round(simGp - simOp + churnDeltaVal);
       onSimulateChange({
         priceLift: p,
@@ -119,7 +117,7 @@ export function SensitivitySandbox({
         </div>
         <button
           onClick={handleReset}
-          className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-white transition-colors p-1"
+          className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-white transition-colors p-1 cursor-pointer"
           title="Reset to Base Assumptions"
         >
           <RotateCcw className="h-3 w-3" />
