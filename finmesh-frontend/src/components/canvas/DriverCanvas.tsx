@@ -109,14 +109,20 @@ const nodeTypes = {
 
 // --- Main Canvas Component ---
 
-export function DriverCanvas() {
+interface DriverCanvasProps {
+  baseRevenue?: number;
+  baseCOGS?: number;
+  baseOpex?: number;
+}
+
+export function DriverCanvas({
+  baseRevenue = 1250000,
+  baseCOGS = 525000,
+  baseOpex = 410000,
+}: DriverCanvasProps = {}) {
   const [priceLift, setPriceLift] = useState<number>(0);
   const [churnDelta, setChurnDelta] = useState<number>(0);
   const [marketingSpend, setMarketingSpend] = useState<number>(0);
-
-  const baseRevenue = 180000;
-  const baseCOGS = 36000;
-  const baseOpex = 64000;
 
   // Real-time DAG recomputation
   const simRevenue = Math.round(baseRevenue * (1 + priceLift / 100) * (1 - churnDelta / 100));

@@ -11,10 +11,11 @@ import {
   FileSpreadsheet,
   PanelRightClose,
   PanelRightOpen,
-  Building2,
   Calendar,
   ShieldCheck,
   CheckCircle2,
+  Sparkles,
+  RotateCcw,
 } from "lucide-react";
 
 import { KpiStatCard } from "@/components/cockpit/KpiStatCard";
@@ -28,49 +29,18 @@ import { VarianceMemo } from "@/components/memo/VarianceMemo";
 import { ExcelTaskpane } from "@/components/excel/ExcelTaskpane";
 import { SlideDeckModal } from "@/components/presentation/SlideDeckModal";
 import { ExecutiveDeckData, generateExecutiveDeck } from "@/lib/export/pptxGenerator";
-import { FINANCIAL_BASELINE_2026_Q1 } from "@/lib/financialBaseline";
-
-// Derive Canonical Deck Baseline from Single Source of Truth
-const DEFAULT_DECK_DATA: ExecutiveDeckData = {
-  period: "2026-Q1",
-  generatedAt: "2026-03-31T23:59:59Z",
-  kpis: {
-    arr: FINANCIAL_BASELINE_2026_Q1.revenue.actual,
-    arrVariance: `${FINANCIAL_BASELINE_2026_Q1.revenue.variance < 0 ? "-" : "+"}$${Math.abs(FINANCIAL_BASELINE_2026_Q1.revenue.variance).toLocaleString()} (${FINANCIAL_BASELINE_2026_Q1.revenue.variancePct})`,
-    grossMarginPct: parseFloat(((FINANCIAL_BASELINE_2026_Q1.gross_profit.actual / FINANCIAL_BASELINE_2026_Q1.revenue.actual) * 100).toFixed(1)),
-    grossMarginVariance: "-1.6% vs Plan",
-    netBurn: -26667,
-    runwayMonths: 28.4,
-  },
-  metrics: Object.values(FINANCIAL_BASELINE_2026_Q1).map((m) => ({
-    id: m.id,
-    name: m.name,
-    actual: m.actual,
-    budget: m.budget,
-    variance: m.variance,
-    variancePct: m.variancePct,
-    category: m.category,
-    formula: m.formula,
-    sqlHash: m.sqlHash,
-  })),
-  varianceDiagnosis: [
-    "Volume Contraction: Enterprise renewal cycle extended by 22 days in APAC, leading to $75k unearned revenue variance.",
-    "Price Discipline: ASP held steady across Tier-1 accounts with zero emergency discounting.",
-    "Cloud Optimization: Migrated telemetry clusters to Graviton instances, saving $30k favorable in hosting COGS.",
-    "Headcount Controls: Q1 engineering hiring pause delayed 3 non-critical roles, saving $40k favorable in Opex.",
-  ],
-  whatifScenarios: [
-    { name: "Current Baseline", revenue: 1250000, grossProfit: 725000, runway: 28.4 },
-    { name: "Bull Scenario (+10% Price Lift)", revenue: 1375000, grossProfit: 850000, runway: 34.2 },
-    { name: "Bear Scenario (-15% Renewal)", revenue: 1062500, grossProfit: 537500, runway: 21.0 },
-  ],
-};
+import { FINANCIAL_BASELINE_2026_Q1, VoucherEntry } from "@/lib/financialBaseline";
+import { INDUSTRY_PACKS, IndustryType, IndustryPackConfig } from "@/lib/industryTemplates";
 
 export default function WorkspacePage() {
   const [activeView, setActiveView] = useState<"pvm" | "report" | "canvas" | "sandbox" | "excel">("pvm");
   const [selectedEntity, setSelectedEntity] = useState<string>("global");
   const [selectedScenario, setSelectedScenario] = useState<string>("actual_vs_budget");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("2026-Q1");
+  const [selectedIndustry, setSelectedIndustry] = useState<IndustryType>("general");
+  const [isIndustrySwitching, setIsIndustrySwitching] = useState(false);
+
+  const activePack: IndustryPackConfig = INDUSTRY_PACKS[selectedIndustry] || INDUSTRY_PACKS.general;
 
   const [selectedAudit, setSelectedAudit] = useState<{
     metricName: string;
@@ -82,6 +52,7 @@ export default function WorkspacePage() {
     formula: string;
     sqlQuery: string;
     sqlHash?: string;
+    vouchers?: VoucherEntry[];
   } | null>(null);
 
   const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
@@ -90,8 +61,25 @@ export default function WorkspacePage() {
   const [memoCollapsed, setMemoCollapsed] = useState(false);
   const [committedNotice, setCommittedNotice] = useState<string | null>(null);
 
+  const handleSwitchIndustry = async (ind: IndustryType) => {
+    setSelectedIndustry(ind);
+    try {
+      setIsIndustrySwitching(true);
+      const apiUrl = process.env.NEXT_PUBLIC_FINMESH_API_URL || "http://localhost:8080";
+      await fetch(`${apiUrl}/api/v1/industry/switch?industry=${ind}`, {
+        method: "POST",
+      }).catch(() => {
+        // Standalone fallback
+      });
+      setCommittedNotice(`Switched active industry to "${INDUSTRY_PACKS[ind].displayName}"! GL vouchers and metrics updated.`);
+      setTimeout(() => setCommittedNotice(null), 3500);
+    } finally {
+      setIsIndustrySwitching(false);
+    }
+  };
+
   const handleSelectToken = (metricId: string, sqlHash?: string) => {
-    const meta = FINANCIAL_BASELINE_2026_Q1[metricId];
+    const meta = activePack.metrics[metricId] || FINANCIAL_BASELINE_2026_Q1[metricId];
     if (meta) {
       setSelectedAudit({
         metricName: metricId,
@@ -103,6 +91,7 @@ export default function WorkspacePage() {
         formula: meta.formula,
         sqlHash: sqlHash || meta.sqlHash,
         sqlQuery: meta.sqlQuery,
+        vouchers: meta.vouchers,
       });
     } else {
       setSelectedAudit({
@@ -123,10 +112,41 @@ export default function WorkspacePage() {
     handleSelectToken(row.metricName);
   };
 
+  // Dynamically constructed deck data based on current industry
+  const currentDeckData: ExecutiveDeckData = {
+    period: selectedPeriod,
+    generatedAt: "2026-03-31T23:59:59Z",
+    kpis: {
+      arr: activePack.sandboxConfig.baseRevenue,
+      arrVariance: `${activePack.kpis[0].variance} (${activePack.kpis[0].variancePct})`,
+      grossMarginPct: parseFloat(((activePack.sandboxConfig.baseRevenue - activePack.sandboxConfig.baseCogs) / activePack.sandboxConfig.baseRevenue * 100).toFixed(1)),
+      grossMarginVariance: "-1.6% vs Plan",
+      netBurn: -26667,
+      runwayMonths: 28.4,
+    },
+    metrics: Object.values(activePack.metrics).map((m) => ({
+      id: m.id,
+      name: m.name,
+      actual: m.actual,
+      budget: m.budget,
+      variance: m.variance,
+      variancePct: m.variancePct,
+      category: m.category,
+      formula: m.formula,
+      sqlHash: m.sqlHash,
+    })),
+    varianceDiagnosis: activePack.memo.recommendations,
+    whatifScenarios: [
+      { name: "Current Baseline", revenue: activePack.sandboxConfig.baseRevenue, grossProfit: activePack.sandboxConfig.baseRevenue - activePack.sandboxConfig.baseCogs, runway: 28.4 },
+      { name: "Bull Scenario (+10% ASP)", revenue: Math.round(activePack.sandboxConfig.baseRevenue * 1.1), grossProfit: Math.round((activePack.sandboxConfig.baseRevenue * 1.1) - activePack.sandboxConfig.baseCogs), runway: 34.2 },
+      { name: "Bear Scenario (-15% Churn)", revenue: Math.round(activePack.sandboxConfig.baseRevenue * 0.85), grossProfit: Math.round((activePack.sandboxConfig.baseRevenue * 0.85) - activePack.sandboxConfig.baseCogs), runway: 21.0 },
+    ],
+  };
+
   const handleExportPPT = async () => {
     try {
       setIsExportingPPT(true);
-      await generateExecutiveDeck(DEFAULT_DECK_DATA);
+      await generateExecutiveDeck(currentDeckData);
     } catch (err) {
       console.error("PPT export failed:", err);
     } finally {
@@ -162,7 +182,7 @@ export default function WorkspacePage() {
   };
 
   const scenarioDisplayMap: Record<string, string> = {
-    actual_vs_budget: "Actual vs Budget Plan",
+    actual_vs_budget: "Actual vs Budget (Baseline)",
     bull: "What-If Bull (+10% ASP)",
     bear: "What-If Bear (-15% Churn)",
   };
@@ -180,6 +200,14 @@ export default function WorkspacePage() {
             <span className="px-2.5 py-1 text-muted-foreground font-mono">
               {scenarioDisplayMap[selectedScenario] || "Actual vs Budget"}
             </span>
+          </div>
+
+          <span className="text-neutral-700 hidden sm:inline">|</span>
+
+          {/* Active Industry Badge */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-xs font-mono text-neutral-300">
+            <Sparkles className="h-3.5 w-3.5 text-neutral-400" />
+            <span>{activePack.displayName}</span>
           </div>
 
           <span className="text-neutral-700 hidden sm:inline">|</span>
@@ -254,51 +282,21 @@ export default function WorkspacePage() {
         </div>
       )}
 
-      {/* 2. Top Executive Scorecard (4 KpiStatCard row) */}
+      {/* 2. Top Executive Scorecard (4 KpiStatCard row - Dynamically adapts to Industry) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiStatCard
-          title="Total Revenue / ARR"
-          value="$1,250,000"
-          change="-$125,000 (-9.1%)"
-          trend="down"
-          favorability="unfavorable"
-          subtext="Budget: $1,375,000 • Volume Drag"
-          sparklineData={[1375, 1340, 1310, 1280, 1250]}
-          onClick={() => handleSelectToken("revenue", "a7f8e32c")}
-        />
-
-        <KpiStatCard
-          title="Gross Profit Margin"
-          value="58.0%"
-          change="-1.6% vs Plan"
-          trend="down"
-          favorability="unfavorable"
-          subtext="Budget: 59.6% • COGS $525,000"
-          sparklineData={[60, 59.5, 59, 58.2, 58.0]}
-          onClick={() => handleSelectToken("gross_profit", "e5d4c3b2")}
-        />
-
-        <KpiStatCard
-          title="Operating Expenses (OPEX)"
-          value="$410,000"
-          change="+$40,000 (+8.9%)"
-          trend="up"
-          favorability="favorable"
-          subtext="Budget: $450,000 • Favorable Freeze"
-          sparklineData={[450, 440, 425, 418, 410]}
-          onClick={() => handleSelectToken("opex", "f1a2b3c4")}
-        />
-
-        <KpiStatCard
-          title="Net Income &amp; Runway"
-          value="$315,000"
-          change="-$55,000 (-14.9%)"
-          trend="down"
-          favorability="unfavorable"
-          subtext="Runway: 28.4 Months • Target > 24m"
-          sparklineData={[370, 355, 340, 325, 315]}
-          onClick={() => handleSelectToken("net_income", "99e8d7c6")}
-        />
+        {activePack.kpis.map((kpi) => (
+          <KpiStatCard
+            key={kpi.id}
+            title={kpi.label}
+            value={kpi.value}
+            change={`${kpi.variance} (${kpi.variancePct})`}
+            trend={kpi.isFavorable ? "up" : "down"}
+            favorability={kpi.isFavorable ? "favorable" : "unfavorable"}
+            subtext={kpi.subtitle || `Budget: ${kpi.budget}`}
+            sparklineData={kpi.sparkline}
+            onClick={() => handleSelectToken(kpi.id)}
+          />
+        ))}
       </div>
 
       {/* 3. True 3-Pane Command Workbench Layout */}
@@ -311,7 +309,7 @@ export default function WorkspacePage() {
           <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
             <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
               <span>Workbench Modes</span>
-              <span className="text-[10px] font-mono text-neutral-500">v0.1</span>
+              <span className="text-[10px] font-mono text-neutral-500">v0.2</span>
             </div>
 
             <div className="space-y-1">
@@ -325,7 +323,7 @@ export default function WorkspacePage() {
               >
                 <div className="flex items-center gap-2">
                   <Sliders className="h-3.5 w-3.5" />
-                  <span>PVM &amp; Sensitivity</span>
+                  <span>Waterfall &amp; Sandbox</span>
                 </div>
                 <span className="text-[10px] font-mono text-neutral-500">Dual</span>
               </button>
@@ -340,7 +338,7 @@ export default function WorkspacePage() {
               >
                 <div className="flex items-center gap-2">
                   <Layers className="h-3.5 w-3.5" />
-                  <span>Multi-Dimensional P&amp;L</span>
+                  <span>P&amp;L / Margin Statement</span>
                 </div>
                 <span className="text-[10px] font-mono text-neutral-500">Grid</span>
               </button>
@@ -392,7 +390,54 @@ export default function WorkspacePage() {
             </div>
           </div>
 
-          {/* Interactive Accounting Period & Scenario Selectors (Spec Req §3.1) */}
+          {/* Industry FBP Domain Presets (REQ-0008) */}
+          <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-neutral-400" />
+                <span>Industry Domain Pack</span>
+              </span>
+              <span className="text-[10px] font-mono text-neutral-400 px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800">
+                {activePack.badge}
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              {[
+                { id: "general", label: "General Corporate FP&A", badge: "Baseline", desc: "P&L, PVM, OpEx Controls" },
+                { id: "saas", label: "Enterprise SaaS (B2B)", badge: "ARR Bridge", desc: "NRR, CAC Payback, Cloud COGS" },
+                { id: "ecommerce", label: "E-Commerce & DTC", badge: "Tiered CM", desc: "CM1-3, ROAS, Return Rates" },
+                { id: "retail", label: "Omnichannel Retail / FMCG", badge: "GTN Leakage", desc: "Gross-to-Net, Store Economics" },
+              ].map((ind) => (
+                <button
+                  key={ind.id}
+                  onClick={() => handleSwitchIndustry(ind.id as IndustryType)}
+                  className={`w-full text-left p-2 rounded text-xs transition-colors cursor-pointer border ${
+                    selectedIndustry === ind.id
+                      ? "bg-neutral-800 border-neutral-600 text-white"
+                      : "bg-neutral-900/60 border-neutral-800/80 text-neutral-400 hover:text-white hover:bg-neutral-800/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-neutral-200">{ind.label}</span>
+                    <span className="text-[10px] font-mono text-neutral-400 px-1 py-0.5 rounded bg-neutral-950 border border-neutral-800">
+                      {ind.badge}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-neutral-500 mt-0.5 leading-tight">{ind.desc}</p>
+                </button>
+              ))}
+            </div>
+
+            {isIndustrySwitching && (
+              <div className="text-[11px] font-mono text-neutral-400 flex items-center gap-1.5 animate-pulse pt-1">
+                <RotateCcw className="h-3 w-3 animate-spin text-neutral-400" />
+                <span>Switching DuckDB ledger &amp; catalog...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Interactive Accounting Period & Scenario Selectors */}
           <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
             <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
               <span className="flex items-center gap-1.5">
@@ -450,11 +495,8 @@ export default function WorkspacePage() {
           {/* Legal Entity & Accounting Scope Selector */}
           <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3.5 space-y-3">
             <div className="flex items-center justify-between text-xs font-semibold text-neutral-300 border-b border-neutral-800/80 pb-2">
-              <span className="flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5 text-neutral-400" />
-                <span>Entity &amp; Books</span>
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500">GL</span>
+              <span>Operating Entity</span>
+              <span className="text-[10px] font-mono text-neutral-500">Multi-Entity</span>
             </div>
 
             <div className="space-y-1.5 text-xs">
@@ -462,7 +504,7 @@ export default function WorkspacePage() {
                 onClick={() => setSelectedEntity("global")}
                 className={`w-full flex items-center justify-between p-2 rounded text-xs font-sans transition-colors cursor-pointer ${
                   selectedEntity === "global"
-                    ? "bg-neutral-800 text-white"
+                    ? "bg-neutral-800 text-white font-medium"
                     : "text-neutral-400 hover:bg-neutral-900/60"
                 }`}
               >
@@ -473,7 +515,7 @@ export default function WorkspacePage() {
                 onClick={() => setSelectedEntity("americas")}
                 className={`w-full flex items-center justify-between p-2 rounded text-xs font-sans transition-colors cursor-pointer ${
                   selectedEntity === "americas"
-                    ? "bg-neutral-800 text-white"
+                    ? "bg-neutral-800 text-white font-medium"
                     : "text-neutral-400 hover:bg-neutral-900/60"
                 }`}
               >
@@ -484,7 +526,7 @@ export default function WorkspacePage() {
                 onClick={() => setSelectedEntity("emea")}
                 className={`w-full flex items-center justify-between p-2 rounded text-xs font-sans transition-colors cursor-pointer ${
                   selectedEntity === "emea"
-                    ? "bg-neutral-800 text-white"
+                    ? "bg-neutral-800 text-white font-medium"
                     : "text-neutral-400 hover:bg-neutral-900/60"
                 }`}
               >
@@ -502,7 +544,7 @@ export default function WorkspacePage() {
             </div>
 
             <div className="space-y-1 font-mono text-[11px]">
-              {Object.values(FINANCIAL_BASELINE_2026_Q1).map((m) => (
+              {Object.values(activePack.metrics).map((m) => (
                 <button
                   key={m.id}
                   onClick={() => handleSelectToken(m.id)}
@@ -526,32 +568,53 @@ export default function WorkspacePage() {
             memoCollapsed ? "xl:col-span-9" : "xl:col-span-5 lg:col-span-6"
           }`}
         >
-          {/* PVM & Sensitivity Sandbox View */}
+          {/* Waterfall & Sensitivity Sandbox View */}
           {activeView === "pvm" && (
             <div className="space-y-6">
-              <PvmWaterfallExplorer onTokenClick={handleSelectToken} />
-              <SensitivitySandbox onCommitToDuckDB={handleCommitDuckDB} />
+              <PvmWaterfallExplorer
+                data={activePack.waterfallData}
+                title={activePack.waterfallTitle}
+                formulaTitle={activePack.waterfallFormulaTitle}
+                formulaDesc={activePack.waterfallFormulaDesc}
+                onTokenClick={handleSelectToken}
+              />
+              <SensitivitySandbox
+                config={activePack.sandboxConfig}
+                onCommitToDuckDB={handleCommitDuckDB}
+              />
             </div>
           )}
 
           {/* Multi-Dimensional P&L Grid View */}
           {activeView === "report" && (
             <div className="space-y-6">
-              <PnLTable onSelectAudit={handleSelectPnLAudit} />
+              <PnLTable
+                rows={activePack.pnlRows}
+                title={activePack.pnlTitle}
+                subtitle={activePack.pnlSubtitle}
+                onSelectAudit={handleSelectPnLAudit}
+              />
             </div>
           )}
 
           {/* Causal Driver DAG Canvas View */}
           {activeView === "canvas" && (
             <div className="rounded-lg border border-border bg-card overflow-hidden">
-              <DriverCanvas />
+              <DriverCanvas
+                baseRevenue={activePack.sandboxConfig.baseRevenue}
+                baseCOGS={activePack.sandboxConfig.baseCogs}
+                baseOpex={activePack.sandboxConfig.baseOpex}
+              />
             </div>
           )}
 
           {/* Sensitivity Sandbox Standalone View */}
           {activeView === "sandbox" && (
             <div className="space-y-6">
-              <SensitivitySandbox onCommitToDuckDB={handleCommitDuckDB} />
+              <SensitivitySandbox
+                config={activePack.sandboxConfig}
+                onCommitToDuckDB={handleCommitDuckDB}
+              />
             </div>
           )}
 
@@ -569,6 +632,7 @@ export default function WorkspacePage() {
         {!memoCollapsed && (
           <div className="xl:col-span-4 lg:col-span-6 space-y-4">
             <VarianceMemo
+              config={activePack.memo}
               onTokenClick={handleSelectToken}
               onOpenPresentation={() => setIsPresentationOpen(true)}
             />
@@ -597,7 +661,7 @@ export default function WorkspacePage() {
       <SlideDeckModal
         isOpen={isPresentationOpen}
         onClose={() => setIsPresentationOpen(false)}
-        data={DEFAULT_DECK_DATA}
+        data={currentDeckData}
         onTokenClick={handleSelectToken}
       />
     </div>

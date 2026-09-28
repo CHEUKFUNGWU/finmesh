@@ -11,8 +11,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/CHEUKFUNGWU/finmesh/backend/internal/industry"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/model"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/semantic"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/storage"
@@ -26,17 +28,20 @@ var (
 
 // APIHandler coordinates REST API requests for Excel Add-ins and presentation services.
 type APIHandler struct {
-	catalog  *semantic.Catalog
-	compiler *semantic.Compiler
-	db       *storage.DB
+	catalog         *semantic.Catalog
+	compiler        *semantic.Compiler
+	db              *storage.DB
+	currentIndustry string
+	mu              sync.RWMutex
 }
 
 // NewAPIHandler constructs a new APIHandler instance.
 func NewAPIHandler(catalog *semantic.Catalog, compiler *semantic.Compiler, db *storage.DB) *APIHandler {
 	return &APIHandler{
-		catalog:  catalog,
-		compiler: compiler,
-		db:       db,
+		catalog:         catalog,
+		compiler:        compiler,
+		db:              db,
+		currentIndustry: "general",
 	}
 }
 
@@ -46,6 +51,9 @@ func (h *APIHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/metrics/catalog", h.withCORS(h.handleMetricsCatalog))
 	mux.HandleFunc("/api/v1/metrics/drilldown", h.withCORS(h.handleMetricsDrilldown))
 	mux.HandleFunc("/api/v1/scenarios/override", h.withCORS(h.handleScenarioOverride))
+	mux.HandleFunc("/api/v1/industry/packs", h.withCORS(h.handleIndustryPacks))
+	mux.HandleFunc("/api/v1/industry/switch", h.withCORS(h.handleIndustrySwitch))
+	mux.HandleFunc("/api/v1/industry/current", h.withCORS(h.handleIndustryCurrent))
 }
 
 func (h *APIHandler) withCORS(next http.HandlerFunc) http.HandlerFunc {
@@ -449,5 +457,73 @@ func (h *APIHandler) handleMetricsDrilldown(w http.ResponseWriter, r *http.Reque
 		"entries":     entries,
 		"vouchers":    entries,
 		"row_count":   len(entries),
+	})
+}
+
+func (h *APIHandler) handleIndustryPacks(w http.ResponseWriter, r *http.Request) {
+	packs := industry.ListPacks()
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"packs": packs,
+		"total": len(packs),
+	})
+}
+
+func (h *APIHandler) handleIndustrySwitch(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, `{"error":"POST method required"}`, http.StatusMethodNotAllowed)
+		return
+	}
+
+	industryID := r.URL.Query().Get("industry")
+	if industryID == "" {
+		var payload struct {
+			Industry string `json:"industry"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err == nil {
+			industryID = payload.Industry
+		}
+	}
+	if industryID == "" {
+		industryID = "general"
+	}
+
+	res, err := industry.LoadPack(r.Context(), industryID, h.catalog, h.db)
+	if err != nil {
+		log.Printf("[API Industry] Switch failed: %v", err)
+		http.Error(w, fmt.Sprintf(`{"error":"failed to switch industry: %v"}`, err), http.StatusBadRequest)
+		return
+	}
+
+	h.mu.Lock()
+	h.currentIndustry = industryID
+	h.mu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func (h *APIHandler) handleIndustryCurrent(w http.ResponseWriter, r *http.Request) {
+	h.mu.RLock()
+	curr := h.currentIndustry
+	if curr == "" {
+		curr = "general"
+	}
+	h.mu.RUnlock()
+
+	packFn, exists := industry.Registry[curr]
+	if !exists {
+		curr = "general"
+		packFn = industry.Registry["general"]
+	}
+	pack := packFn()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"current_industry": curr,
+		"display_name":     pack.DisplayName,
+		"description":      pack.Description,
+		"primary_metric":   pack.PrimaryMetric,
+		"metrics":          pack.Metrics,
 	})
 }

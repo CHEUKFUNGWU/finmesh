@@ -63,6 +63,12 @@ func (c *Catalog) GetMetric(name string) (*model.MetricDefinition, bool) {
 	return &m, true
 }
 
+// Clear removes all metrics from the catalog.
+func (c *Catalog) Clear() {
+	c.metrics = make(map[string]model.MetricDefinition)
+	c.order = nil
+}
+
 // AllMetrics returns all registered metrics.
 func (c *Catalog) AllMetrics() []model.MetricDefinition {
 	list := make([]model.MetricDefinition, 0, len(c.metrics))

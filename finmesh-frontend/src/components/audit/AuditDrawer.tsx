@@ -17,6 +17,7 @@ interface AuditDrawerProps {
     sqlQuery: string;
     formula: string;
     sqlHash?: string;
+    vouchers?: VoucherEntry[];
   } | null;
 }
 
@@ -24,7 +25,7 @@ export function AuditDrawer({ isOpen, onClose, data }: AuditDrawerProps) {
   if (!isOpen || !data) return null;
 
   const baselineMetric = FINANCIAL_BASELINE_2026_Q1[data.metricName];
-  const vouchers: VoucherEntry[] = baselineMetric?.vouchers || [
+  const vouchers: VoucherEntry[] = data.vouchers || baselineMetric?.vouchers || [
     {
       voucherId: "VCH-2026-DEFAULT",
       lineNo: 1,

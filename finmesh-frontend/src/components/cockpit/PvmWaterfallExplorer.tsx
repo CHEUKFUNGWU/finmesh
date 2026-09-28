@@ -60,10 +60,19 @@ const DEFAULT_PVM_DATA: PvmBar[] = [
 
 interface PvmWaterfallExplorerProps {
   data?: PvmBar[];
+  title?: string;
+  formulaTitle?: string;
+  formulaDesc?: string;
   onTokenClick?: (metricId: string, sqlHash?: string) => void;
 }
 
-export function PvmWaterfallExplorer({ data = DEFAULT_PVM_DATA, onTokenClick }: PvmWaterfallExplorerProps) {
+export function PvmWaterfallExplorer({
+  data = DEFAULT_PVM_DATA,
+  title = "Price-Volume-Mix (PVM) Variance Decomposition",
+  formulaTitle = "Algebraic Invariant Decomposition:",
+  formulaDesc = "Reconstructed Variance = sum of constituent effects. Evaluated against baseline budget.",
+  onTokenClick,
+}: PvmWaterfallExplorerProps) {
   const defaultBar = data.find((d) => d.skus.length > 0) || data[0] || null;
   const [selectedBar, setSelectedBar] = useState<PvmBar | null>(defaultBar);
   const [showFormula, setShowFormula] = useState(false);
@@ -101,23 +110,21 @@ export function PvmWaterfallExplorer({ data = DEFAULT_PVM_DATA, onTokenClick }: 
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
         <div className="flex items-center space-x-2">
           <h3 className="text-sm font-semibold tracking-tight text-foreground">
-            Price-Volume-Mix (PVM) Variance Decomposition
+            {title}
           </h3>
           <div className="relative">
             <button
               onMouseEnter={() => setShowFormula(true)}
               onMouseLeave={() => setShowFormula(false)}
               className="text-muted-foreground hover:text-foreground transition-colors p-0.5 cursor-pointer"
-              aria-label="PVM calculation formula"
+              aria-label="Waterfall calculation formula"
             >
               <HelpCircle className="h-3.5 w-3.5" />
             </button>
             {showFormula && (
               <div className="absolute left-0 top-6 z-50 w-72 rounded-md border border-neutral-700 bg-neutral-900 p-3 shadow-xl text-[11px] font-mono leading-relaxed text-neutral-300">
-                <div className="font-semibold text-white mb-1.5">Algebraic PVM Invariant:</div>
-                <div className="text-neutral-400">ΔPrice = (Price_act - Price_plan) × Vol_act</div>
-                <div className="text-neutral-400">ΔVol = (Vol_act - Vol_plan) × Price_plan</div>
-                <div className="text-neutral-400">ΔMix = Gross Deviation - ΔPrice - ΔVol</div>
+                <div className="font-semibold text-white mb-1.5">{formulaTitle}</div>
+                <div className="text-neutral-400">{formulaDesc}</div>
                 <div className="mt-1.5 pt-1.5 border-t border-neutral-800 text-neutral-500 text-[10px]">
                   |Δ_total - Reconstructed| ≤ $0.01 (Trial-Balanced)
                 </div>

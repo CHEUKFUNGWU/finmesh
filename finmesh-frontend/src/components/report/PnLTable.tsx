@@ -31,16 +31,24 @@ export const mockPnLData: PnLRow[] = Object.values(FINANCIAL_BASELINE_2026_Q1).m
 
 interface PnLTableProps {
   onSelectAudit: (row: PnLRow) => void;
+  rows?: PnLRow[];
+  title?: string;
+  subtitle?: string;
 }
 
-export function PnLTable({ onSelectAudit }: PnLTableProps) {
+export function PnLTable({
+  onSelectAudit,
+  rows = mockPnLData,
+  title = "2026-Q1 Multi-Dimensional P&L Statement",
+  subtitle = "Hierarchical Income Statement with DuckDB Real-time Aggregation",
+}: PnLTableProps) {
   return (
     <div className="bg-[#0F141C] border border-neutral-800 rounded-lg overflow-hidden">
       <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-white">2026-Q1 Multi-Dimensional P&amp;L Statement</h2>
+          <h2 className="text-sm font-semibold text-white">{title}</h2>
           <p className="text-xs text-neutral-400 mt-0.5">
-            Hierarchical Income Statement with DuckDB Real-time Aggregation
+            {subtitle}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -67,7 +75,7 @@ export function PnLTable({ onSelectAudit }: PnLTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-800/80">
-            {mockPnLData.map((row) => {
+            {rows.map((row) => {
               // Positive variance represents favorable performance across all categories
               // (e.g. +$30k COGS savings, +$40k OPEX savings are positive numbers in financialBaseline)
               const isFavorable = row.variance >= 0;

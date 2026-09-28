@@ -10,6 +10,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/api"
+	"github.com/CHEUKFUNGWU/finmesh/backend/internal/industry"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/mcp"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/model"
 	"github.com/CHEUKFUNGWU/finmesh/backend/internal/semantic"
@@ -38,21 +39,22 @@ func main() {
 	}
 	defer db.Close()
 
-	// 2. Initialize Semantic Metric Catalog
+	// 2. Initialize Semantic Metric Catalog & Industry Baseline
 	catalog := semantic.NewCatalog()
-	initDefaultMetrics(catalog)
+	if *seed {
+		res, err := industry.LoadPack(context.Background(), "general", catalog, db)
+		if err != nil {
+			log.Printf("Warning: failed to seed default industry pack: %v", err)
+		} else {
+			log.Printf("[FinMesh] Loaded initial industry '%s' (%d metrics, %d vouchers, balanced: %t)",
+				res.IndustryName, res.MetricsCount, res.EntriesCount, res.TrialBalance.IsBalanced)
+		}
+	} else {
+		initDefaultMetrics(catalog)
+	}
 
 	// 3. Compile Engine
 	compiler := semantic.NewCompiler(catalog, db)
-
-	// 4. Optionally seed demo ledger data
-	if *seed {
-		if err := seedDemoData(context.Background(), db); err != nil {
-			log.Printf("Warning: failed to seed demo data: %v", err)
-		} else {
-			log.Printf("[FinMesh] Demo 2026-Q1 ledger entries successfully seeded and trial-balanced.")
-		}
-	}
 
 	// 5. Initialize MCP Server
 	mcpServer := mcp.NewFinMeshMCPServer(catalog, compiler, db)
