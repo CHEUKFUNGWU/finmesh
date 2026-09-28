@@ -3,12 +3,48 @@
 @tailwind utilities;
 
 :root {
-  --background: #0b0f19;
-  --foreground: #f3f4f6;
+  --background: #070A10;
+  --foreground: #EDEDED;
+  --card: #0F141C;
+  --card-foreground: #EDEDED;
+  --popover: #0F141C;
+  --popover-foreground: #EDEDED;
+  --primary: #FFFFFF;
+  --primary-foreground: #070A10;
+  --secondary: #161B22;
+  --secondary-foreground: #EDEDED;
+  --muted: #161B22;
+  --muted-foreground: #8B949E;
+  --accent: #21262D;
+  --accent-foreground: #EDEDED;
+  --border: #21262D;
+  --input: #21262D;
+  --ring: #8B949E;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-feature-settings: "tnum" 1, "cv02" 1, "cv03" 1, "cv04" 1;
+}
+
+/* Tabular figures for all financial amounts */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle, distraction-free monochrome scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #070A10;
+}
+::-webkit-scrollbar-thumb {
+  background: #21262D;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #30363D;
 }

@@ -266,30 +266,30 @@ export function ExcelTaskpane() {
   const currentCellData = grid[selectedCell.r]?.[selectedCell.c] || { raw: "", evaluated: "", isFormula: false };
 
   return (
-    <div className="bg-[#111827] border border-neutral-800 rounded-lg p-5 shadow-sm space-y-5">
+    <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-5 shadow-sm space-y-5">
       {/* Top Banner */}
       <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-white">Excel Two-Way Sync Add-in (Office.js)</h2>
-            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800">
+            <h2 className="text-sm font-semibold text-white">Excel Two-Way Sync Add-in (Office.js)</h2>
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-400 border border-neutral-800">
               Live DuckDB Formula Binding
             </span>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-950 text-blue-400 border border-blue-800">
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-400 border border-neutral-800">
               50ms Batch Debouncing
             </span>
           </div>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-[11px] text-neutral-400 mt-1">
             Simulate native Excel 365 formulas (=FINMESH.METRIC) communicating with DuckDB semantic layers with zero arithmetic error
           </p>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-neutral-400 font-mono">Telemetry:</span>
-          <span className="px-2 py-1 rounded bg-[#0B0F19] border border-neutral-800 text-neutral-300 font-mono">
+          <span className="text-neutral-400 font-mono text-[11px]">Telemetry:</span>
+          <span className="px-2 py-1 rounded bg-[#070A10] border border-neutral-800 text-neutral-300 font-mono text-[11px]">
             Batches: {batchCount}
           </span>
-          <span className="px-2 py-1 rounded bg-[#0B0F19] border border-neutral-800 text-emerald-400 font-mono">
+          <span className="px-2 py-1 rounded bg-[#070A10] border border-neutral-800 text-neutral-200 font-mono text-[11px]">
             {lastLatencyMs}ms Latency
           </span>
         </div>
@@ -299,15 +299,15 @@ export function ExcelTaskpane() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
         {/* Left Column: Excel Sheet Grid Emulator (8 cols) */}
-        <div className="lg:col-span-8 bg-[#0B0F19] border border-neutral-800 rounded-lg p-4 space-y-3">
+        <div className="lg:col-span-8 bg-[#070A10] border border-neutral-800 rounded-lg p-4 space-y-3">
           
           {/* Excel Formula Bar */}
-          <div className="flex items-center gap-2 bg-[#111827] border border-neutral-700/80 rounded px-3 py-1.5 text-xs font-mono">
+          <div className="flex items-center gap-2 bg-[#0F141C] border border-neutral-800 rounded px-3 py-1.5 text-xs font-mono">
             <span className="text-neutral-400 font-bold">
               {String.fromCharCode(65 + selectedCell.c)}{selectedCell.r + 1}
             </span>
             <span className="text-neutral-600">|</span>
-            <span className="text-emerald-400 font-bold">fx</span>
+            <span className="text-neutral-400 font-bold">fx</span>
             <input
               type="text"
               value={currentCellData.raw}

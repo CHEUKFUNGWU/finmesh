@@ -13,25 +13,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#0B0F19] text-[#F3F4F6] antialiased">
-        <header className="border-b border-neutral-800 bg-[#111827] px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+      <body className="min-h-screen bg-[#070A10] text-[#EDEDED] antialiased">
+        <header className="border-b border-[#21262D] bg-[#0F141C] px-6 py-3 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-neutral-200 text-sm">
+            <div className="w-7 h-7 rounded bg-neutral-900 border border-neutral-800 flex items-center justify-center font-mono font-semibold text-neutral-300 text-xs">
               FM
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-white leading-none">FinMesh Workspace</h1>
-              <span className="text-xs text-neutral-400 mt-1 block">Milestone 1 • Go Core & DuckDB Columnar</span>
+              <h1 className="text-sm font-semibold tracking-tight text-[#EDEDED] leading-none">FinMesh Command Workbench</h1>
+              <span className="text-[11px] text-[#8B949E] mt-1 block">DuckDB Columnar OLAP • Zero-Hallucination FP&A</span>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="inline-flex items-center px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
+          <div className="flex items-center gap-3 text-xs">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-300 border border-neutral-800">
               DuckDB Engine Online
             </span>
-            <span className="text-neutral-400 border-l border-neutral-800 pl-4">v0.1-alpha</span>
+            <span className="text-neutral-500 border-l border-[#21262D] pl-3 text-[11px] font-mono">v0.1-alpha</span>
           </div>
         </header>
-        <main className="max-w-7xl mx-auto px-6 py-8">
+        <main className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
           {children}
         </main>
       </body>

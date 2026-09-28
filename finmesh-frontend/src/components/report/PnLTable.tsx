@@ -2,7 +2,7 @@
 
 import React from "react";
 
-interface PnLRow {
+export interface PnLRow {
   id: string;
   metricName: string;
   displayName: string;
@@ -15,7 +15,7 @@ interface PnLRow {
   formula: string;
 }
 
-const mockPnLData: PnLRow[] = [
+export const mockPnLData: PnLRow[] = [
   {
     id: "m-rev",
     metricName: "revenue",
@@ -58,11 +58,23 @@ const mockPnLData: PnLRow[] = [
     displayName: "Operating Expenses (R&D & G&A)",
     category: "Opex",
     actual: 64000,
-    budget: 65000,
-    variance: -1000,
-    variancePercent: -1.5,
+    budget: 60000,
+    variance: 4000,
+    variancePercent: 6.7,
     sqlQuery: "SELECT COALESCE(SUM(debit_amount) - SUM(credit_amount), 0.0) FROM fact_general_ledger WHERE scenario = 'actual' AND (account_category = 'Opex')",
     formula: "SUM(debit_amount) - SUM(credit_amount)",
+  },
+  {
+    id: "m-ni",
+    metricName: "net_income",
+    displayName: "Net Income",
+    category: "Profitability",
+    actual: 80000,
+    budget: 110000,
+    variance: -30000,
+    variancePercent: -27.3,
+    sqlQuery: "Computed from (gross_profit - opex)",
+    formula: "gross_profit - opex",
   },
 ];
 
@@ -72,32 +84,34 @@ interface PnLTableProps {
 
 export function PnLTable({ onSelectAudit }: PnLTableProps) {
   return (
-    <div className="bg-[#111827] border border-neutral-800 rounded-lg">
+    <div className="bg-[#0F141C] border border-neutral-800 rounded-lg overflow-hidden">
       <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">2026-Q1 Multi-Dimensional P&L Statement</h2>
-          <p className="text-xs text-neutral-400 mt-1">Compiled deterministically via Go Semantic Engine & DuckDB Fact Ledger</p>
+          <h2 className="text-sm font-semibold text-white">2026-Q1 Multi-Dimensional P&L Statement</h2>
+          <p className="text-[11px] text-neutral-400 mt-0.5">Compiled deterministically via Go Semantic Engine & DuckDB Fact Ledger</p>
         </div>
-        <div className="text-xs text-neutral-400">
-          Click any row to open the <span className="text-neutral-200 font-medium">Audit Drawer</span>
+        <div className="text-[11px] text-neutral-500 font-mono">
+          Click any row to open <span className="text-neutral-300">Audit Drawer</span>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-neutral-800 bg-[#161F30] text-neutral-400 font-medium">
-              <th className="py-3 px-4">Financial Metric</th>
-              <th className="py-3 px-4">Category</th>
-              <th className="py-3 px-4 text-right">Actual (2026-Q1)</th>
-              <th className="py-3 px-4 text-right">Budget (2026-Q1)</th>
-              <th className="py-3 px-4 text-right">Variance ($)</th>
-              <th className="py-3 px-4 text-right">Variance (%)</th>
-              <th className="py-3 px-4 text-center">Action</th>
+            <tr className="border-b border-neutral-800 bg-[#161B22] text-neutral-400 font-medium">
+              <th className="py-2.5 px-4">Financial Metric</th>
+              <th className="py-2.5 px-4">Category</th>
+              <th className="py-2.5 px-4 text-right">Actuals (Q1)</th>
+              <th className="py-2.5 px-4 text-right">Budget (Q1)</th>
+              <th className="py-2.5 px-4 text-right">Variance ($)</th>
+              <th className="py-2.5 px-4 text-right">Variance (%)</th>
+              <th className="py-2.5 px-4 text-center">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-800">
+          <tbody className="divide-y divide-neutral-800/80">
             {mockPnLData.map((row) => {
+              // Favorable logic: revenue and gross profit positive variance is favorable;
+              // for costs (COGS/Opex), spending less than budget (negative variance) is favorable.
               const isFavorable = row.category === "Revenue" || row.category === "Profitability" 
                 ? row.variance >= 0 
                 : row.variance <= 0;
@@ -106,26 +120,26 @@ export function PnLTable({ onSelectAudit }: PnLTableProps) {
                 <tr
                   key={row.id}
                   onClick={() => onSelectAudit(row)}
-                  className="hover:bg-neutral-800/50 cursor-pointer transition-colors"
+                  className="hover:bg-neutral-800/40 cursor-pointer transition-colors"
                 >
                   <td className="py-3 px-4 font-medium text-white">
                     {row.displayName}
                   </td>
                   <td className="py-3 px-4 text-neutral-400">{row.category}</td>
-                  <td className="py-3 px-4 text-right text-neutral-200">
+                  <td className="py-3 px-4 text-right font-mono tabular-nums text-neutral-200">
                     ${row.actual.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="py-3 px-4 text-right text-neutral-400">
+                  <td className="py-3 px-4 text-right font-mono tabular-nums text-neutral-400">
                     ${row.budget.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </td>
-                  <td className={`py-3 px-4 text-right font-medium ${isFavorable ? "text-emerald-400" : "text-rose-400"}`}>
+                  <td className={`py-3 px-4 text-right font-mono tabular-nums font-medium ${isFavorable ? "text-emerald-400" : "text-rose-400"}`}>
                     {row.variance >= 0 ? "+" : ""}${row.variance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </td>
-                  <td className={`py-3 px-4 text-right font-medium ${isFavorable ? "text-emerald-400" : "text-rose-400"}`}>
+                  <td className={`py-3 px-4 text-right font-mono tabular-nums font-medium ${isFavorable ? "text-emerald-400" : "text-rose-400"}`}>
                     {row.variancePercent >= 0 ? "+" : ""}{row.variancePercent.toFixed(1)}%
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <button className="px-2.5 py-1 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-[11px] transition-colors">
+                    <button className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-800 text-[10px] font-mono transition-colors">
                       Trace SQL
                     </button>
                   </td>

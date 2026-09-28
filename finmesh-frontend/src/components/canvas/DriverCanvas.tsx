@@ -32,7 +32,7 @@ interface DriverNodeProps {
 
 function DriverNode({ data }: DriverNodeProps) {
   return (
-    <div className="bg-[#161F30] border border-neutral-700 rounded-lg p-3 w-56 shadow-sm">
+    <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3 w-56 shadow-sm">
       <div className="flex justify-between items-center text-xs mb-1">
         <span className="font-semibold text-white">{data.label}</span>
         <span className={`font-mono text-xs font-semibold ${
@@ -76,7 +76,7 @@ function MetricNode({ data }: MetricNodeProps) {
   const isFavorable = isRevenueOrProfit ? isPositiveDelta : !isPositiveDelta;
 
   return (
-    <div className="bg-[#111827] border border-neutral-700 rounded-lg p-3 w-60 shadow-sm">
+    <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-3 w-60 shadow-sm">
       <Handle
         type="target"
         position={Position.Left}
@@ -456,11 +456,11 @@ export function DriverCanvas() {
   };
 
   return (
-    <div className="bg-[#111827] border border-neutral-800 rounded-lg p-6 shadow-sm relative">
+    <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-5 shadow-sm relative">
       <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
         <div>
-          <h2 className="text-lg font-semibold text-white">What-If Causal Driver Sandbox</h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <h2 className="text-sm font-semibold text-white">What-If Causal Driver Sandbox</h2>
+          <p className="text-[11px] text-neutral-400 mt-0.5">
             Interactive React Flow DAG with instant cascaded recalculation and cycle prevention
           </p>
         </div>
@@ -474,19 +474,19 @@ export function DriverCanvas() {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs transition-colors"
+            className="px-2.5 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 text-xs transition-colors"
           >
             Import JSON
           </button>
           <button
             onClick={handleReset}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs transition-colors"
+            className="px-2.5 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 text-xs transition-colors"
           >
             Reset Sliders
           </button>
           <button
             onClick={handleExportScenario}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 text-xs font-medium transition-colors"
+            className="px-2.5 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 text-xs font-medium transition-colors"
           >
             Export Scenario JSON
           </button>
@@ -494,14 +494,14 @@ export function DriverCanvas() {
       </div>
 
       {cycleError && (
-        <div className="mt-3 p-3 bg-rose-950/60 border border-rose-800 rounded text-rose-300 text-xs flex justify-between items-center">
+        <div className="mt-3 p-3 bg-neutral-900 border border-rose-900/60 rounded text-rose-300 text-xs flex justify-between items-center">
           <span>{cycleError}</span>
           <button onClick={() => setCycleError(null)} className="text-rose-400 hover:text-white ml-3 font-bold">✕</button>
         </div>
       )}
 
       {/* React Flow Interactive Canvas */}
-      <div className="h-[520px] w-full mt-4 rounded border border-neutral-800 bg-[#0B0F19] overflow-hidden">
+      <div className="h-[520px] w-full mt-4 rounded border border-neutral-800 bg-[#070A10] overflow-hidden">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -511,8 +511,8 @@ export function DriverCanvas() {
           fitView
           attributionPosition="bottom-left"
         >
-          <Background color="#1F2937" gap={16} />
-          <Controls className="!bg-[#111827] !border-neutral-800 !text-neutral-300" />
+          <Background color="#21262D" gap={16} />
+          <Controls className="!bg-[#0F141C] !border-neutral-800 !text-neutral-300" />
         </ReactFlow>
       </div>
 

@@ -75,11 +75,11 @@ All numbers verified with zero arithmetic hallucination via DuckDB columnar quer
       <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-white">Autonomous Finance BP Variance Memo</h2>
-            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-blue-950/80 text-blue-400 border border-blue-800">
+            <h2 className="text-base font-semibold text-white">Autonomous Finance BP Variance Memo</h2>
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-400 border border-neutral-800">
               Protocol-Neutral Gateway
             </span>
-            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800">
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-400 border border-neutral-800">
               Zero Arithmetic Hallucination
             </span>
           </div>
@@ -90,20 +90,20 @@ All numbers verified with zero arithmetic hallucination via DuckDB columnar quer
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsPresentationOpen(true)}
-            className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+            className="px-3 py-1.5 rounded bg-white hover:bg-neutral-200 text-black text-xs font-medium transition-colors"
           >
             Present Fullscreen
           </button>
           <button
             onClick={handleExportPPT}
             disabled={isExporting}
-            className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors"
+            className="px-3 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 text-xs font-medium transition-colors"
           >
             {isExporting ? "Exporting PPT..." : "Export Native .pptx"}
           </button>
           <button
             onClick={handleCopyMarkdown}
-            className="px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs transition-colors"
+            className="px-3 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 text-xs transition-colors"
           >
             {copied ? "Copied ✓" : "Copy Markdown"}
           </button>

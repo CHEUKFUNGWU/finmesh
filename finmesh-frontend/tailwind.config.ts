@@ -10,13 +10,44 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        // Strict chart & financial delta colors ONLY
+        success: {
+          DEFAULT: "#10B981",
+          foreground: "#FFFFFF",
+        },
+        destructive: {
+          DEFAULT: "#F43F5E",
+          foreground: "#FFFFFF",
+        },
         financial: {
-          bg: "#0B0F19",
-          card: "#111827",
-          border: "#1F2937",
+          bg: "#070A10",
+          card: "#0F141C",
+          surface: "#161B22",
+          border: "#21262D",
           favorable: "#10B981",
           unfavorable: "#F43F5E",
-          neutral: "#9CA3AF",
+          neutral: "#8B949E",
         },
       },
       fontFamily: {

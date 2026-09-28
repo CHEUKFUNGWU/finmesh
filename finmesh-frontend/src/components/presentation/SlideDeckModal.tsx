@@ -52,7 +52,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
       <div className="flex items-center justify-between px-6 py-3 border-b border-neutral-800 bg-[#0B0F19]">
         <div className="flex items-center gap-3">
           <span className="font-semibold text-sm tracking-wide text-white">FinMesh Executive Presentation</span>
-          <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-950 text-blue-400 border border-blue-800">
+          <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-300 border border-neutral-800">
             Slide {currentSlide + 1} of {totalSlides}
           </span>
           <span className="text-xs text-neutral-400">
@@ -67,8 +67,8 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowNotes(!showNotes)}
-            className={`px-3 py-1 rounded text-xs transition-colors ${
-              showNotes ? "bg-blue-600 text-white" : "bg-neutral-800 text-neutral-300 hover:text-white"
+            className={`px-3 py-1 rounded text-xs transition-colors border ${
+              showNotes ? "bg-neutral-700 text-white border-neutral-600" : "bg-neutral-900 text-neutral-400 hover:text-white border-neutral-800"
             }`}
           >
             {showNotes ? "Hide Notes" : "Speaker Notes"}
@@ -76,7 +76,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
           <button
             onClick={handleExportPPT}
             disabled={isExporting}
-            className="px-3.5 py-1 rounded text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+            className="px-3.5 py-1 rounded text-xs font-medium bg-white hover:bg-neutral-200 text-black transition-colors"
           >
             {isExporting ? "Exporting PPT..." : "Export Native .pptx"}
           </button>
@@ -193,7 +193,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
               </div>
 
               <div className="bg-[#111827] border border-neutral-800 rounded-lg p-6 space-y-4 text-sm text-neutral-300 leading-relaxed">
-                <div className="text-xs uppercase font-mono text-blue-400 tracking-wider">
+                <div className="text-xs uppercase font-mono text-neutral-400 tracking-wider">
                   Operational Variance Highlights
                 </div>
                 <ul className="space-y-3 list-disc pl-5">
@@ -281,7 +281,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
       {/* Speaker Notes Drawer (Optional) */}
       {showNotes && (
         <div className="h-40 bg-[#0B0F19] border-t border-neutral-800 p-4 font-mono text-xs text-neutral-300 overflow-y-auto">
-          <div className="text-[11px] font-semibold uppercase text-blue-400 mb-1">
+          <div className="text-[11px] font-semibold uppercase text-neutral-400 mb-1">
             [FinMesh Audit Trace — Speaker Notes]
           </div>
           {currentSlide === 0 && (
@@ -318,7 +318,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
               key={idx}
               onClick={() => setCurrentSlide(idx)}
               className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                currentSlide === idx ? "bg-blue-500 scale-125" : "bg-neutral-700 hover:bg-neutral-600"
+                currentSlide === idx ? "bg-white scale-110" : "bg-neutral-700 hover:bg-neutral-600"
               }`}
             />
           ))}
