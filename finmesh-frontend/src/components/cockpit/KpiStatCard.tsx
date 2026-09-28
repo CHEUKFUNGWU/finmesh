@@ -9,6 +9,7 @@ interface KpiStatCardProps {
   value: string;
   change?: string;
   trend?: "up" | "down" | "neutral";
+  favorability?: "favorable" | "unfavorable" | "neutral";
   subtext?: string;
   sparklineData?: number[];
   onClick?: () => void;
@@ -20,11 +21,19 @@ export function KpiStatCard({
   value,
   change,
   trend = "neutral",
+  favorability,
   subtext,
   sparklineData,
   onClick,
   className,
 }: KpiStatCardProps) {
+  // Determine color solely based on financial favorability
+  const isFavorable = favorability ? favorability === "favorable" : trend === "up";
+  const isUnfavorable = favorability ? favorability === "unfavorable" : trend === "down";
+
+  // Precalculate max sparkline value outside loop
+  const maxVal = sparklineData && sparklineData.length > 0 ? Math.max(1, ...sparklineData) : 1;
+
   return (
     <div
       onClick={onClick}
@@ -41,10 +50,10 @@ export function KpiStatCard({
         {change && (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-mono font-medium",
-              trend === "up" && "text-emerald-400 bg-emerald-950/30 border border-emerald-900/40",
-              trend === "down" && "text-rose-400 bg-rose-950/30 border border-rose-900/40",
-              trend === "neutral" && "text-muted-foreground bg-muted border border-border"
+              "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-mono font-medium tabular-nums bg-neutral-900 border border-neutral-800",
+              isFavorable && "text-emerald-400",
+              isUnfavorable && "text-rose-400",
+              !isFavorable && !isUnfavorable && "text-muted-foreground"
             )}
           >
             {trend === "up" && <ArrowUpRight className="h-3 w-3" />}
@@ -63,8 +72,7 @@ export function KpiStatCard({
         {sparklineData && sparklineData.length > 0 && (
           <div className="flex items-end gap-1 h-6 shrink-0">
             {sparklineData.map((val, idx) => {
-              const max = Math.max(...sparklineData);
-              const heightPct = Math.max(15, Math.round((val / max) * 100));
+              const heightPct = Math.max(15, Math.round((val / maxVal) * 100));
               return (
                 <div
                   key={idx}

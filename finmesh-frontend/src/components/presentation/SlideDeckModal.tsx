@@ -82,7 +82,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
           </button>
           <button
             onClick={onClose}
-            className="p-1 rounded text-neutral-400 hover:text-white text-lg font-bold"
+            className="p-1 rounded text-neutral-400 hover:text-white text-lg font-semibold cursor-pointer"
           >
             ✕
           </button>
@@ -91,39 +91,39 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
 
       {/* Main Slide Canvas */}
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
-        <div className="w-full max-w-5xl aspect-[16/9] bg-[#0B0F19] border border-neutral-800 rounded-xl p-8 shadow-2xl flex flex-col justify-between relative">
+        <div className="w-full max-w-5xl aspect-[16/9] bg-[#0F141C] border border-neutral-800 rounded-xl p-8 shadow-2xl flex flex-col justify-between relative">
           
           {/* Slide 1 */}
           {currentSlide === 0 && (
             <div className="space-y-6 flex-1 flex flex-col justify-center">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">
+                <h1 className="text-2xl font-semibold tracking-tight text-white">
                   Executive Performance Commentary — {data.period}
                 </h1>
-                <p className="text-sm text-neutral-400 mt-1">
-                  Autonomous FP&A Analysis with Zero-Hallucination Line-Item Drill-Down
+                <p className="text-xs text-neutral-400 mt-1">
+                  Autonomous FP&amp;A Analysis with Zero-Hallucination Line-Item Drill-Down
                 </p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
-                <div className="p-4 rounded-lg bg-[#111827] border border-neutral-800">
+                <div className="p-4 rounded-lg bg-[#070A10] border border-neutral-800">
                   <div className="text-xs text-neutral-400">Total ARR / Revenue</div>
-                  <div className="text-2xl font-bold text-white mt-1">${(data.kpis.arr).toLocaleString()}</div>
-                  <div className="text-xs text-rose-400 mt-1">{data.kpis.arrVariance}</div>
+                  <div className="text-2xl font-semibold font-mono tabular-nums text-white mt-1">${(data.kpis.arr).toLocaleString()}</div>
+                  <div className="text-xs font-mono tabular-nums text-rose-400 mt-1">{data.kpis.arrVariance}</div>
                 </div>
-                <div className="p-4 rounded-lg bg-[#111827] border border-neutral-800">
+                <div className="p-4 rounded-lg bg-[#070A10] border border-neutral-800">
                   <div className="text-xs text-neutral-400">Gross Margin</div>
-                  <div className="text-2xl font-bold text-white mt-1">{data.kpis.grossMarginPct}%</div>
-                  <div className="text-xs text-rose-400 mt-1">{data.kpis.grossMarginVariance}</div>
+                  <div className="text-2xl font-semibold font-mono tabular-nums text-white mt-1">{data.kpis.grossMarginPct}%</div>
+                  <div className="text-xs font-mono tabular-nums text-rose-400 mt-1">{data.kpis.grossMarginVariance}</div>
                 </div>
-                <div className="p-4 rounded-lg bg-[#111827] border border-neutral-800">
+                <div className="p-4 rounded-lg bg-[#070A10] border border-neutral-800">
                   <div className="text-xs text-neutral-400">Monthly Net Burn</div>
-                  <div className="text-2xl font-bold text-white mt-1">-$26,667</div>
-                  <div className="text-xs text-emerald-400 mt-1">Favorable vs Plan</div>
+                  <div className="text-2xl font-semibold font-mono tabular-nums text-white mt-1">-$26,667</div>
+                  <div className="text-xs font-mono tabular-nums text-emerald-400 mt-1">Favorable vs Plan</div>
                 </div>
-                <div className="p-4 rounded-lg bg-[#111827] border border-neutral-800">
+                <div className="p-4 rounded-lg bg-[#070A10] border border-neutral-800">
                   <div className="text-xs text-neutral-400">Cash Runway</div>
-                  <div className="text-2xl font-bold text-emerald-400 mt-1">{data.kpis.runwayMonths} Mo</div>
+                  <div className="text-2xl font-semibold font-mono tabular-nums text-emerald-400 mt-1">{data.kpis.runwayMonths} Mo</div>
                   <div className="text-xs text-neutral-400 mt-1">Target: &gt; 24 Mo</div>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
           {currentSlide === 1 && (
             <div className="space-y-4 flex-1">
               <div>
-                <h2 className="text-2xl font-bold text-white">Actual vs Budget P&L Bridge</h2>
+                <h2 className="text-xl font-semibold text-white">Actual vs Budget P&amp;L Bridge</h2>
                 <p className="text-xs text-neutral-400 mt-0.5">
                   Multi-Dimensional Comparison with DuckDB Columnar Verified Audit Tokens
                 </p>
@@ -142,7 +142,7 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
 
               <div className="overflow-x-auto rounded border border-neutral-800 mt-4">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#111827] text-neutral-300 border-b border-neutral-800 font-semibold">
+                  <thead className="bg-[#070A10] text-neutral-300 border-b border-neutral-800 font-medium">
                     <tr>
                       <th className="p-3">Financial Metric</th>
                       <th className="p-3">Actual ($)</th>
@@ -156,12 +156,12 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
                     {data.metrics.map((m) => (
                       <tr key={m.id} className="hover:bg-neutral-900/60">
                         <td className="p-3 font-medium text-white">{m.name}</td>
-                        <td className="p-3 font-mono">${m.actual.toLocaleString()}</td>
-                        <td className="p-3 font-mono text-neutral-400">${m.budget.toLocaleString()}</td>
-                        <td className={`p-3 font-mono ${m.variance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        <td className="p-3 font-mono tabular-nums">${m.actual.toLocaleString()}</td>
+                        <td className="p-3 font-mono tabular-nums text-neutral-400">${m.budget.toLocaleString()}</td>
+                        <td className={`p-3 font-mono tabular-nums ${m.variance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                           {m.variance >= 0 ? "+" : ""}${m.variance.toLocaleString()}
                         </td>
-                        <td className={`p-3 ${m.variance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        <td className={`p-3 font-mono tabular-nums ${m.variance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                           {m.variancePct}
                         </td>
                         <td className="p-3">
@@ -186,13 +186,13 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
           {currentSlide === 2 && (
             <div className="space-y-4 flex-1">
               <div>
-                <h2 className="text-2xl font-bold text-white">Root Cause Attribution & Variance Diagnosis</h2>
+                <h2 className="text-xl font-semibold text-white">Root Cause Attribution &amp; Variance Diagnosis</h2>
                 <p className="text-xs text-neutral-400 mt-0.5">
                   Algebraic Price-Volume-Mix (PVM) Decomposition ($|\Delta_&#123;\text&#123;total&#125;&#125; - \text&#123;reconstructed&#125;| \le 0.01$)
                 </p>
               </div>
 
-              <div className="bg-[#111827] border border-neutral-800 rounded-lg p-6 space-y-4 text-sm text-neutral-300 leading-relaxed">
+              <div className="bg-[#070A10] border border-neutral-800 rounded-lg p-6 space-y-4 text-xs text-neutral-300 leading-relaxed">
                 <div className="text-xs uppercase font-mono text-neutral-400 tracking-wider">
                   Operational Variance Highlights
                 </div>
@@ -211,33 +211,33 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
           {currentSlide === 3 && (
             <div className="space-y-4 flex-1">
               <div>
-                <h2 className="text-2xl font-bold text-white">What-If Causal Sandbox: Forward Trajectories</h2>
+                <h2 className="text-xl font-semibold text-white">What-If Causal Sandbox: Forward Trajectories</h2>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  DAG Topological Sensitivity with Cascading P&L Recalculation
+                  DAG Topological Sensitivity with Cascading P&amp;L Recalculation
                 </p>
               </div>
 
               <div className="grid grid-cols-3 gap-4 pt-2">
                 {data.whatifScenarios.map((sc, i) => (
-                  <div key={i} className="p-5 rounded-lg bg-[#111827] border border-neutral-800 space-y-3">
+                  <div key={i} className="p-5 rounded-lg bg-[#070A10] border border-neutral-800 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-white">{sc.name}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">
+                      <span className="text-xs font-semibold text-white">{sc.name}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 font-mono">
                         {sc.name.includes("Bull") ? "Optimistic" : sc.name.includes("Bear") ? "Pessimistic" : "Baseline"}
                       </span>
                     </div>
                     <div className="space-y-1 text-xs">
                       <div className="flex justify-between text-neutral-400">
                         <span>Projected Rev:</span>
-                        <span className="text-white font-mono">${sc.revenue.toLocaleString()}</span>
+                        <span className="text-white font-mono tabular-nums">${sc.revenue.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-neutral-400">
                         <span>Gross Profit:</span>
-                        <span className="text-emerald-400 font-mono">${sc.grossProfit.toLocaleString()}</span>
+                        <span className="text-emerald-400 font-mono tabular-nums">${sc.grossProfit.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-neutral-400">
                         <span>Runway:</span>
-                        <span className={`font-mono font-medium ${sc.runway > 24 ? "text-emerald-400" : "text-rose-400"}`}>
+                        <span className={`font-mono tabular-nums font-medium ${sc.runway > 24 ? "text-emerald-400" : "text-rose-400"}`}>
                           {sc.runway.toFixed(1)} Months
                         </span>
                       </div>
@@ -252,13 +252,13 @@ export function SlideDeckModal({ isOpen, onClose, data, onTokenClick }: SlideDec
           {currentSlide === 4 && (
             <div className="space-y-4 flex-1">
               <div>
-                <h2 className="text-2xl font-bold text-white">Appendix: Data Governance & Lineage</h2>
+                <h2 className="text-xl font-semibold text-white">Appendix: Data Governance &amp; Lineage</h2>
                 <p className="text-xs text-neutral-400 mt-0.5">
                   SOC-2 / CFO Audit Ready Compliance Architecture
                 </p>
               </div>
 
-              <div className="bg-[#111827] border border-neutral-800 rounded-lg p-5 font-mono text-xs text-neutral-300 space-y-2">
+              <div className="bg-[#070A10] border border-neutral-800 rounded-lg p-5 font-mono text-xs text-neutral-300 space-y-2">
                 <p><span className="text-neutral-500">Platform:</span> Go 1.25+ Financial Engine with DuckDB Embedded Columnar OLAP</p>
                 <p><span className="text-neutral-500">Trial Balance Defense:</span> Strict Debit == Credit balance constraint (|Delta| &lt;= 0.0001)</p>
                 <p><span className="text-neutral-500">Protocol Neutral Gateway:</span> OpenAI-compatible / Anthropic-compatible / Response API / Self-hosted</p>

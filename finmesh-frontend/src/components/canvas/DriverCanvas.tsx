@@ -496,7 +496,7 @@ export function DriverCanvas() {
       {cycleError && (
         <div className="mt-3 p-3 bg-neutral-900 border border-rose-900/60 rounded text-rose-300 text-xs flex justify-between items-center">
           <span>{cycleError}</span>
-          <button onClick={() => setCycleError(null)} className="text-rose-400 hover:text-white ml-3 font-bold">✕</button>
+          <button onClick={() => setCycleError(null)} className="text-rose-400 hover:text-white ml-3 font-semibold cursor-pointer">✕</button>
         </div>
       )}
 
@@ -518,15 +518,15 @@ export function DriverCanvas() {
 
       {/* Waterfall Drawer modal for clicked metric node */}
       {selectedMetric && (
-        <div className="mt-4 p-4 bg-[#141E33] border border-blue-900/60 rounded-lg">
-          <div className="flex justify-between items-center border-b border-blue-900/40 pb-2">
+        <div className="mt-4 p-4 bg-[#0F141C] border border-neutral-800 rounded-lg">
+          <div className="flex justify-between items-center border-b border-neutral-800 pb-2">
             <div>
               <h3 className="text-sm font-semibold text-white">Waterfall Attribution: {selectedMetric.label}</h3>
               <p className="text-xs text-neutral-400">Baseline vs What-If Simulated Outcome</p>
             </div>
             <button
               onClick={() => setSelectedMetric(null)}
-              className="text-xs text-neutral-400 hover:text-white px-2 py-1 bg-neutral-800 rounded"
+              className="text-xs text-neutral-400 hover:text-white px-2 py-1 bg-neutral-800 rounded cursor-pointer"
             >
               Close
             </button>
@@ -534,19 +534,19 @@ export function DriverCanvas() {
           <div className="grid grid-cols-3 gap-3 mt-3 text-xs">
             <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
               <span className="text-neutral-400 block">Baseline Value</span>
-              <span className="text-sm font-mono font-semibold text-white mt-1 block">
+              <span className="text-sm font-mono font-semibold text-white mt-1 block tabular-nums">
                 ${(selectedMetric.baseline ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
               <span className="text-neutral-400 block">Simulated Value</span>
-              <span className="text-sm font-mono font-semibold text-blue-400 mt-1 block">
+              <span className="text-sm font-mono font-semibold text-white mt-1 block tabular-nums">
                 ${(selectedMetric.simulated ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="p-2.5 bg-neutral-900/80 rounded border border-neutral-800">
               <span className="text-neutral-400 block">Total Impact Delta</span>
-              <span className={`text-sm font-mono font-semibold mt-1 block ${
+              <span className={`text-sm font-mono font-semibold mt-1 block tabular-nums ${
                 (selectedMetric.simulated ?? 0) >= (selectedMetric.baseline ?? 0) ? "text-emerald-400" : "text-rose-400"
               }`}>
                 {(selectedMetric.simulated ?? 0) >= (selectedMetric.baseline ?? 0) ? "+" : ""}
@@ -558,7 +558,7 @@ export function DriverCanvas() {
 
           {/* Upstream Marginal Driver Waterfall Breakdown per REQ-0003 §4.3 */}
           {selectedMetric.waterfall.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-blue-900/30">
+            <div className="mt-3 pt-3 border-t border-neutral-800">
               <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Upstream Driver Marginal Attribution / 边际动因拆解
               </div>

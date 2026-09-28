@@ -28,7 +28,7 @@ export function MetricToken({
       className="inline-flex items-center gap-1.5 px-2 py-0.5 mx-1 rounded text-xs font-mono font-medium bg-neutral-900 border border-neutral-800 hover:border-neutral-600 hover:bg-neutral-850 transition-colors cursor-pointer"
       title={`Click to inspect DuckDB SQL & Ledger vouchers (Hash: #${sqlHash})`}
     >
-      <span className={isPositive ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>
+      <span className={`tabular-nums ${isPositive ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}`}>
         {displayValue}
       </span>
       <span className="text-[10px] text-neutral-500 font-mono">

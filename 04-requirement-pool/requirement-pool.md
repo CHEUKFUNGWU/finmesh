@@ -16,6 +16,7 @@
 | `REQ-0006` | Excel 双向同步插件 (Office.js) 与语义公式绑定 / Excel Two-Way Sync Add-in & Semantic Formula Binding | `SRC-0021` | 表格集成 / Spreadsheet Integration | developing | P1 | PM / Fullstack | v0.2 | `REQ-0002`, `REQ-0005` | [05-requirements/req-0006-excel-sync-addin/](../05-requirements/req-0006-excel-sync-addin/) |
 | `REQ-0007` | 董事会与管理层 PPT 经营分析报告一键导出 / Board & Executive Presentation PPT Auto-Generator | `SRC-0021` | 汇报交付 / Presentation & Export | developing | P1 | Fullstack / AI | v0.2 | `REQ-0002`, `REQ-0004` | [05-requirements/req-0007-executive-presentation-generator/](../05-requirements/req-0007-executive-presentation-generator/) |
 | `REQ-0008` | 多行业财务 BP 预置指标包与沙盘推演模板库 / Multi-Industry FBP Pre-built Metric Packs & Canvas Templates | `SRC-0022` | 预置领域资产 / Industry Packs | candidate | P1 | PM / Content | v0.2 | `REQ-0002`, `REQ-0003` | 待立项 / Pending |
+| `REQ-0009` | 纯正黑白灰金融设计系统与三栏指挥作战台 / Monochrome Neutral Financial Design System & 3-Pane Command Workbench | `SRC-0023`, `SRC-0002`, `SRC-0003` | 交互架构 / UI/UX & Cockpit | developing | P0 | Frontend / Fullstack | v0.1 | `REQ-0002`, `REQ-0003`, `REQ-0004` | [05-requirements/req-0009-command-workbench-uiux/](../05-requirements/req-0009-command-workbench-uiux/) |
 
 ---
 

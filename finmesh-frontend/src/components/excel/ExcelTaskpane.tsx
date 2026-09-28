@@ -303,11 +303,11 @@ export function ExcelTaskpane() {
           
           {/* Excel Formula Bar */}
           <div className="flex items-center gap-2 bg-[#0F141C] border border-neutral-800 rounded px-3 py-1.5 text-xs font-mono">
-            <span className="text-neutral-400 font-bold">
+            <span className="text-neutral-400 font-semibold">
               {String.fromCharCode(65 + selectedCell.c)}{selectedCell.r + 1}
             </span>
             <span className="text-neutral-600">|</span>
-            <span className="text-neutral-400 font-bold">fx</span>
+            <span className="text-neutral-400 font-semibold">fx</span>
             <input
               type="text"
               value={currentCellData.raw}
@@ -321,7 +321,7 @@ export function ExcelTaskpane() {
           <div className="overflow-x-auto border border-neutral-800 rounded">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="bg-[#1F2937]/50 text-neutral-400 border-b border-neutral-800 font-mono">
+                <tr className="bg-[#161B22] text-neutral-400 border-b border-neutral-800 font-mono">
                   <th className="w-10 p-2 text-center border-r border-neutral-800">#</th>
                   <th className="p-2 border-r border-neutral-800">A (Line Item)</th>
                   <th className="p-2 border-r border-neutral-800">B (Actuals)</th>
@@ -333,7 +333,7 @@ export function ExcelTaskpane() {
               <tbody>
                 {grid.map((row, rIdx) => (
                   <tr key={rIdx} className="border-b border-neutral-800/80 hover:bg-neutral-900/40">
-                    <td className="p-2 text-center text-neutral-500 font-mono bg-[#111827]/40 border-r border-neutral-800">
+                    <td className="p-2 text-center text-neutral-500 font-mono bg-[#0F141C] border-r border-neutral-800">
                       {rIdx + 1}
                     </td>
                     {row.map((cell, cIdx) => {
@@ -342,9 +342,9 @@ export function ExcelTaskpane() {
                         <td
                           key={cIdx}
                           onClick={() => setSelectedCell({ r: rIdx, c: cIdx })}
-                          className={`p-2 border-r border-neutral-800/60 font-mono cursor-pointer transition-colors ${
+                          className={`p-2 border-r border-neutral-800/60 font-mono cursor-pointer transition-colors tabular-nums ${
                             isSelected
-                              ? "bg-blue-950/60 text-white ring-2 ring-blue-500 z-10"
+                              ? "bg-neutral-800 text-white ring-1 ring-neutral-400 z-10"
                               : "text-neutral-300"
                           } ${cell.status === "error" ? "text-rose-400" : ""}`}
                         >
@@ -484,13 +484,13 @@ export function ExcelTaskpane() {
                 <button
                   onClick={handleCommitSandbox}
                   disabled={isSyncing}
-                  className="w-full py-2 rounded text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                  className="w-full py-2 rounded text-xs font-medium bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 transition-colors cursor-pointer"
                 >
                   {isSyncing ? "Syncing with DuckDB..." : "Commit Scenario to Canvas"}
                 </button>
 
                 {syncStatus && (
-                  <div className="p-2.5 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-[11px] leading-relaxed">
+                  <div className="p-2.5 rounded bg-neutral-900 border border-neutral-800 text-emerald-400 text-[11px] leading-relaxed">
                     {syncStatus}
                   </div>
                 )}
@@ -504,28 +504,28 @@ export function ExcelTaskpane() {
                   Active Formula Lineage ({String.fromCharCode(65 + selectedCell.c)}{selectedCell.r + 1}):
                 </div>
 
-                <div className="bg-[#111827] p-3 rounded border border-neutral-800 space-y-2.5 font-mono text-xs">
+                <div className="bg-[#0F141C] p-3 rounded border border-neutral-800 space-y-2.5 font-mono text-xs">
                   <div>
                     <span className="text-neutral-500">Raw Formula:</span>
                     <p className="text-white break-all">{currentCellData.raw}</p>
                   </div>
                   <div>
                     <span className="text-neutral-500">Calculated Value:</span>
-                    <p className="text-emerald-400 font-bold">${typeof currentCellData.evaluated === "number" ? currentCellData.evaluated.toLocaleString() : currentCellData.evaluated}</p>
+                    <p className="text-emerald-400 font-semibold tabular-nums">${typeof currentCellData.evaluated === "number" ? currentCellData.evaluated.toLocaleString() : currentCellData.evaluated}</p>
                   </div>
                   <div>
                     <span className="text-neutral-500">Audit Token Hash:</span>
-                    <p className="text-blue-400 font-bold">#{drilldownData?.sqlHash || currentCellData.sqlHash || "a7f8e32c"}</p>
+                    <p className="text-white font-semibold">#{drilldownData?.sqlHash || currentCellData.sqlHash || "a7f8e32c"}</p>
                   </div>
                   <div>
                     <span className="text-neutral-500">DuckDB Execution Plan:</span>
-                    <p className="text-neutral-400 text-[10px] bg-[#070A10] p-2 rounded border border-neutral-900 overflow-x-auto whitespace-pre-wrap max-h-24">
+                    <p className="text-neutral-400 text-[10px] bg-[#070A10] p-2 rounded border border-neutral-850 overflow-x-auto whitespace-pre-wrap max-h-24">
                       {drilldownData?.cteSql || "SELECT SUM(credit_amount) - SUM(debit_amount) FROM fact_general_ledger WHERE scenario = 'actual'"}
                     </p>
                   </div>
 
                   {drilldownData?.isLoading && (
-                    <div className="text-[11px] text-blue-400 py-1">Querying DuckDB drilldown vouchers...</div>
+                    <div className="text-[11px] text-neutral-400 py-1 font-mono">Querying DuckDB drilldown vouchers...</div>
                   )}
 
                   {drilldownData?.vouchers && drilldownData.vouchers.length > 0 && (

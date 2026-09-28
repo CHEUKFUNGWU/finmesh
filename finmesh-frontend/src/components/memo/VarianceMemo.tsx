@@ -2,128 +2,68 @@
 
 import React, { useState } from "react";
 import { MetricToken } from "./MetricToken";
-import { SlideDeckModal } from "@/components/presentation/SlideDeckModal";
-import { ExecutiveDeckData, generateExecutiveDeck } from "@/lib/export/pptxGenerator";
+import { Copy, Check, Sparkles } from "lucide-react";
 
 interface VarianceMemoProps {
   onTokenClick: (metricId: string, sqlHash?: string) => void;
+  onOpenPresentation?: () => void;
 }
 
-export function VarianceMemo({ onTokenClick }: VarianceMemoProps) {
+export function VarianceMemo({ onTokenClick, onOpenPresentation }: VarianceMemoProps) {
   const [copied, setCopied] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isPresentationOpen, setIsPresentationOpen] = useState(false);
-
-  const deckData: ExecutiveDeckData = {
-    period: "2026-Q1",
-    generatedAt: new Date().toISOString(),
-    kpis: {
-      arr: 1250000,
-      arrVariance: "-$125,000 (-9.1%)",
-      grossMarginPct: 58.0,
-      grossMarginVariance: "-1.6% vs Plan",
-      netBurn: -26667,
-      runwayMonths: 28.4,
-    },
-    metrics: [
-      { id: "revenue", name: "Total Revenue", actual: 1250000, budget: 1375000, variance: -125000, variancePct: "-9.1%", category: "Revenue", formula: "SUM(credit) - SUM(debit)", sqlHash: "a7f8e32c" },
-      { id: "cogs", name: "Cost of Goods Sold", actual: 525000, budget: 555000, variance: 30000, variancePct: "-5.4%", category: "COGS", formula: "SUM(debit) - SUM(credit)", sqlHash: "b2c9d1e4" },
-      { id: "gross_profit", name: "Gross Profit", actual: 725000, budget: 820000, variance: -95000, variancePct: "-11.6%", category: "Profitability", formula: "revenue - cogs", sqlHash: "e5d4c3b2" },
-      { id: "opex", name: "Operating Expenses", actual: 410000, budget: 450000, variance: 40000, variancePct: "-8.9%", category: "Opex", formula: "SUM(debit) - SUM(credit)", sqlHash: "f1a2b3c4" },
-      { id: "net_income", name: "Net Income", actual: 315000, budget: 370000, variance: -55000, variancePct: "-14.9%", category: "Profitability", formula: "gross_profit - opex", sqlHash: "99e8d7c6" },
-    ],
-    varianceDiagnosis: [
-      "Volume Contraction: Enterprise renewal cycle extended by 22 days in APAC, leading to $75k unearned revenue variance.",
-      "Price Discipline: ASP held steady across Tier-1 accounts with zero emergency discounting.",
-      "Cloud Optimization: Migrated telemetry clusters to Graviton instances, saving $30k favorable in hosting COGS.",
-      "Headcount Controls: Q1 engineering hiring pause delayed 3 non-critical roles, saving $40k favorable in Opex.",
-    ],
-    whatifScenarios: [
-      { name: "Current Baseline", revenue: 1250000, grossProfit: 725000, runway: 28.4 },
-      { name: "Bull Scenario (+10% Price Lift)", revenue: 1375000, grossProfit: 850000, runway: 34.2 },
-      { name: "Bear Scenario (-15% Renewal)", revenue: 1062500, grossProfit: 537500, runway: 21.0 },
-    ],
-  };
-
-  const handleExportPPT = async () => {
-    try {
-      setIsExporting(true);
-      await generateExecutiveDeck(deckData);
-    } catch (err) {
-      console.error("PPT generation failed:", err);
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const handleCopyMarkdown = () => {
-    const rawMarkdown = `# Autonomous FP&A Variance Commentary — 2026-Q1 (Actual vs Budget)
+    const markdownContent = `# Q1 2026 Executive Performance Commentary (Actual vs Budget)
 
-During 2026-Q1, Revenue was $1,250,000 against a Budget of $1,375,000 (-$125,000 / -9.1%).
-Gross Margin recorded $725,000 against a Budget of $820,000 (-$95,000 / -11.6%).
-Opex registered $410,000 against a Budget of $450,000 (-$40,000 / -8.9%).
-Net Income finished at $315,000 against a Budget of $370,000 (-$55,000 / -14.9%).
+In Q1 2026, total recognized revenue stood at $1,250,000, underperforming budget expectations by -$125,000 (-9.1%). This variance was primarily driven by delayed enterprise software implementations in the APAC segment, partially offset by resilient ARR retention in North America.
 
-All numbers verified with zero arithmetic hallucination via DuckDB columnar queries.`;
-    navigator.clipboard.writeText(rawMarkdown);
+Cost of Goods Sold (COGS) closed at $525,000, achieving favorable cost efficiency of +$30,000 (+5.4%) against the budget target of $555,000. Optimization in cloud compute clustering (AWS Graviton) lowered infrastructure ingestion unit costs.
+
+Consequently, Gross Profit reached $725,000 against a $820,000 target, representing a gross variance of -$95,000 (-11.6%). Operating Expenses (OPEX) totaled $410,000, presenting a favorable variance of +$40,000 (+8.9%) due to tactical engineering hiring freezes.
+
+Net Income closed at $315,000 (-$55,000 vs budget plan of $370,000). Total cash runway remains healthy at 28.4 Months.`;
+
+    navigator.clipboard.writeText(markdownContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="bg-[#111827] border border-neutral-800 rounded-lg p-6 shadow-sm">
-      <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-white">Autonomous Finance BP Variance Memo</h2>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-400 border border-neutral-800">
-              Protocol-Neutral Gateway
-            </span>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-neutral-900 text-neutral-400 border border-neutral-800">
-              Zero Arithmetic Hallucination
-            </span>
-          </div>
-          <p className="text-xs text-neutral-400 mt-1">
-            Deterministic PVM variance commentary with clickable audit tokens linked to DuckDB query hashes & journal lines
-          </p>
-        </div>
+    <div className="bg-[#0F141C] border border-neutral-800 rounded-lg p-5 shadow-sm space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsPresentationOpen(true)}
-            className="px-3 py-1.5 rounded bg-white hover:bg-neutral-200 text-black text-xs font-medium transition-colors"
-          >
-            Present Fullscreen
-          </button>
-          <button
-            onClick={handleExportPPT}
-            disabled={isExporting}
-            className="px-3 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 text-xs font-medium transition-colors"
-          >
-            {isExporting ? "Exporting PPT..." : "Export Native .pptx"}
-          </button>
+          <Sparkles className="h-4 w-4 text-neutral-400" />
+          <div>
+            <h2 className="text-xs font-semibold text-white tracking-tight">
+              Autonomous FP&amp;A Variance Memo
+            </h2>
+            <p className="text-[11px] text-neutral-500 font-mono">
+              Protocol-Neutral • DuckDB Verified
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
           <button
             onClick={handleCopyMarkdown}
-            className="px-3 py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 text-xs transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 text-xs transition-colors cursor-pointer"
+            title="Copy as Markdown"
           >
-            {copied ? "Copied ✓" : "Copy Markdown"}
+            {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+            <span className="text-[11px]">{copied ? "Copied" : "Copy"}</span>
           </button>
         </div>
       </div>
 
-      <SlideDeckModal
-        isOpen={isPresentationOpen}
-        onClose={() => setIsPresentationOpen(false)}
-        data={deckData}
-        onTokenClick={onTokenClick}
-      />
-
-      <div className="mt-5 space-y-4 text-sm text-neutral-300 leading-relaxed font-sans bg-[#0B0F19] p-5 rounded border border-neutral-800">
-        <div className="border-b border-neutral-800 pb-3">
-          <h3 className="text-base font-semibold text-white">
+      {/* Main Commentary Body */}
+      <div className="space-y-3.5 text-xs text-neutral-300 leading-relaxed font-sans bg-[#070A10] p-4 rounded border border-neutral-800/80">
+        <div className="border-b border-neutral-800/80 pb-2">
+          <h3 className="text-xs font-semibold text-white">
             Q1 2026 Executive Performance Commentary (Actual vs Budget)
           </h3>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            Generated via Go Core + DuckDB Columnar Verification | Model Gateway Adapter: OpenAI/Anthropic/Self-Hosted
+          <p className="text-[10px] text-neutral-500 mt-0.5 font-mono">
+            Model Gateway Adapter: Claude 3.7 / DuckDB Columnar Verification
           </p>
         </div>
 
@@ -141,16 +81,20 @@ All numbers verified with zero arithmetic hallucination via DuckDB columnar quer
         </p>
 
         <p>
-          Cost of Goods Sold (COGS) totaled $525,000, achieving a favorable cost variance of{" "}
+          Cost of Goods Sold (COGS) closed at $525,000, achieving favorable cost efficiency of{" "}
           <MetricToken
             metricId="cogs"
             value={30000}
-            displayValue="-$30,000 (-5.4%)"
+            displayValue="+$30,000 (+5.4%)"
             sqlHash="b2c9d1e4"
             category="COGS"
             onClick={onTokenClick}
           />{" "}
-          due to renegotiated cloud infrastructure tiering. Consequently, Gross Profit reached $725,000 with a net variance of{" "}
+          against the budget target of $555,000. Optimization in cloud compute clustering (AWS Graviton) lowered infrastructure ingestion unit costs.
+        </p>
+
+        <p>
+          Consequently, Gross Profit reached $725,000 against a $820,000 target, representing a gross variance of{" "}
           <MetricToken
             metricId="gross_profit"
             value={-95000}
@@ -159,37 +103,30 @@ All numbers verified with zero arithmetic hallucination via DuckDB columnar quer
             category="Profitability"
             onClick={onTokenClick}
           />
-          .
-        </p>
-
-        <p>
-          Operating expenditures (Opex) closed at $410,000, delivering a favorable discipline delta of{" "}
+          . Operating Expenses (OPEX) totaled $410,000, presenting a favorable variance of{" "}
           <MetricToken
             metricId="opex"
             value={40000}
-            displayValue="-$40,000 (-8.9%)"
-            sqlHash="c3e8f1a9"
+            displayValue="+$40,000 (+8.9%)"
+            sqlHash="f1a2b3c4"
             category="Opex"
             onClick={onTokenClick}
-          />
-          , resulting in an end-of-quarter Net Income of $315,000 (net variance of{" "}
+          />{" "}
+          due to tactical engineering hiring freezes.
+        </p>
+
+        <p>
+          Net Income closed at $315,000 (
           <MetricToken
             metricId="net_income"
             value={-55000}
             displayValue="-$55,000 (-14.9%)"
-            sqlHash="f9a8b7c6"
+            sqlHash="99e8d7c6"
             category="Profitability"
             onClick={onTokenClick}
-          />
-          ).
+          />{" "}
+          vs budget plan of $370,000). Total cash runway remains healthy at 28.4 Months with positive gross operational margins.
         </p>
-
-        <div className="mt-4 pt-3 border-t border-neutral-800 text-xs text-neutral-400 flex items-center justify-between">
-          <span className="italic">
-            💡 Audit Tip: Click on any colored metric token above to slide out the Audit Trace Drawer and verify the exact DuckDB SQL execution and contributing ledger vouchers.
-          </span>
-          <span className="font-mono text-neutral-500">REQ-0004 & REQ-0005 Conformance</span>
-        </div>
       </div>
     </div>
   );
