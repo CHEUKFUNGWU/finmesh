@@ -566,11 +566,11 @@ export function ExcelTaskpane() {
                   To sideload this Add-in into your native Microsoft Excel 365:
                 </p>
                 <ol className="list-decimal pl-4 space-y-1 text-neutral-300">
-                  <li>Download the XML manifest: <a href="/excel/manifest.xml" target="_blank" className="text-blue-400 underline">manifest.xml</a></li>
+                  <li>Download the XML manifest: <a href="/excel/manifest.xml" target="_blank" className="text-neutral-300 hover:text-neutral-100 underline underline-offset-2">manifest.xml</a></li>
                   <li>In Excel (Desktop), go to <strong>Insert</strong> &gt; <strong>My Add-ins</strong></li>
                   <li>Click <strong>Upload My Add-in</strong> and select <code>manifest.xml</code></li>
                 </ol>
-                <div className="p-2.5 rounded bg-[#111827] border border-neutral-800 text-[11px] font-mono text-neutral-400">
+                <div className="p-2.5 rounded bg-[#070A10] border border-neutral-800 text-[11px] font-mono text-neutral-400">
                   XML Endpoint: /excel/manifest.xml
                 </div>
               </div>
